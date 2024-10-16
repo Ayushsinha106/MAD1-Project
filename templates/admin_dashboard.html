@@ -1,0 +1,24 @@
+{% extends "layout.html" %} {% block title %}Admin Dashboard - Household
+Services{% endblock %} {% block content %}
+<h2>Admin Dashboard</h2>
+<div class="row">
+  <div class="col-md-4">
+    <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-block"
+      >Manage Users</a
+    >
+  </div>
+  <div class="col-md-4">
+    <a
+      href="{{ url_for('manage_services') }}"
+      class="btn btn-secondary btn-block"
+      >Manage Services</a
+    >
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('view_reports') }}" class="btn btn-secondary btn-block"
+      >View Reports</a
+    >
+  </div>
+</div>
+<!-- Additional admin functionalities -->
+{% endblock %}

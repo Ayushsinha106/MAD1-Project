@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
-from app import app
-db = SQLAlchemy(app)
+
+db = SQLAlchemy()
+
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -44,3 +45,4 @@ class Review(db.Model):
     review_text = db.Column(db.Text, nullable=True)
     rating = db.Column(db.Integer, nullable=False)
     date_posted = db.Column(db.DateTime)
+
