@@ -1,12 +1,10 @@
-from flask import Flask, render_template,request, redirect,flash,url_for
+from flask import Flask, render_template,request, redirect,flash,url_for, session
 from flask_sqlalchemy import SQLAlchemy
-from models import db,User, Service, ServiceRequest, Review
+from models import db,User, Service, ServiceRequest, Review, Customer,Customer, Professional
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 
 app = Flask(__name__)
-
-import config
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///db.sqlite3"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -17,6 +15,8 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
  
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"
 
 @app.route('/')
 def index():
@@ -30,6 +30,11 @@ def login():
 def login_post():
     username = request.form.get("username")
     password = request.form.get("password")
+
+    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        session['user_role'] = "admin"
+        return redirect(url_for("admin_dashboard"))
+
     user = User.query.filter_by(username=username).first()
     if not user:
         flash('Invalid username','danger')
@@ -42,15 +47,21 @@ def login_post():
 
 @app.route("/register")
 def register():
-    return render_template("register.html")
+    services = Service.query.all()
+    return render_template("register.html", services=services)
 
 @app.route("/register", methods=["POST"])
 def register_post():
+
     username = request.form.get("username")
     password = request.form.get("password")
     name = request.form.get("name")
     confirm_password = request.form.get("confirm_password")
     role = request.form.get("role")
+    pincode = request.form.get("pincode")
+    address = request.form.get("address")
+
+    flash(role,'success')
     if not username or not password or not confirm_password or not role:
         flash('Please fill out all fields','danger')
         return redirect(url_for("register"))
@@ -66,15 +77,73 @@ def register_post():
     
     password_hash = generate_password_hash(password)
     id = int(uuid.uuid4().int >> 64)
-    new_user = User(username=username,passhash=password_hash,name=name,role=role,id=id)
+
+    if role == 'Professional':
+        service_id = request.form.get("service_id")
+        experience = request.form.get("experience")
+        if not service_id:
+            flash('Please select a service','danger')
+            return redirect(url_for("register"))
+        new_professional = Professional(id=id,role=role, service_id=service_id,address=address, pincode=pincode, experience=experience)
+        new_user = User(id=id, username=username, passhash=password_hash, name=name, role=role)
+
+        try:
+            db.session.add(new_user)
+            db.session.add(new_professional)
+            db.session.commit()
+            return redirect(url_for("login"))
+        except Exception as e:
+            db.session.rollback()
+            flash('Error in registering user: ' + str(e) , 'danger')
+    
+    # for customer
+    new_customer = Customer(id=id,address=address, pincode=pincode)
+    new_user = User(id=id, username=username, passhash=password_hash, name=name, role=role)
     try:
         db.session.add(new_user)
+        db.session.add(new_customer)
         db.session.commit()
         return redirect(url_for("login"))
     except Exception as e:
         db.session.rollback()
         flash('Error in registering user: ' + str(e) , 'danger')
 
+    return redirect(url_for("register"))
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if 'user_role' in session and session['user_role'] == 'admin':
+        return render_template('admin_dashboard.html')  # Create this template
+    else:
+        flash('Please log in first', 'danger')
+        return redirect(url_for('login'))
+
+@app.route('/add_service', methods=['POST'])
+def add_service():
+    if 'user_role' in session and session['user_role'] == 'admin':
+        service_name = request.form.get('service_name')
+        service_description = request.form.get('service_description')
+        base_price = float(request.form.get('base_price'))  # Convert to float
+        time_required = int(request.form.get('time_required'))  # Convert to int
+        service_id = int(uuid.uuid4().int >> 100)  # Create a unique service ID
+        print(service_name, service_description, base_price, time_required, service_id)
+        # Create a new service instance
+        new_service = Service(id=service_id, time_required=time_required,
+                              service_name=service_name, description=service_description,
+                              price=base_price)
+        db.session.add(new_service)
+
+        try:
+            db.session.commit()
+            flash('Service added successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error adding service: ' + str(e), 'danger')
+
+        return redirect(url_for('admin_dashboard'))
+    else:
+        flash('Unauthorized action!', 'danger')
+        return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True)

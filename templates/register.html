@@ -1,76 +1,127 @@
-{% extends "layout.html" %} {% block title %}Login - Household Services{%
+{% extends "layout.html" %} {% block title %}Register - Household Services{%
 endblock %} {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <h2>Register</h2>
-    <form action="" method="POST">
+<div class="container mt-5">
+  <h2>Register</h2>
+  <form action="/register" method="POST">
+    <div class="form-group">
+      <label for="userType">Register as:</label>
+      <select
+        name="role"
+        id="userType"
+        class="form-control"
+        onchange="toggleFields()"
+      >
+        <option value="customer">Customer</option>
+        <option value="professional">Professional</option>
+      </select>
+    </div>
+
+    <!-- Common Fields -->
+    <div class="form-group">
+      <label for="username">Email(Username)</label>
+      <input
+        type="text"
+        class="form-control"
+        id="username"
+        name="username"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input
+        type="password"
+        class="form-control"
+        id="password"
+        name="password"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="confirm_password">Confirm Password</label>
+      <input
+        type="password"
+        class="form-control"
+        id="confirm_password"
+        name="confirm_password"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" class="form-control" id="name" name="name" required />
+    </div>
+
+    <div class="form-group">
+      <label for="pincode">Pincode</label>
+      <input
+        type="text"
+        class="form-control"
+        id="pincode"
+        name="pincode"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Address</label>
+      <textarea
+        class="form-control"
+        id="address"
+        name="address"
+        placeholder="Address"
+        required
+      ></textarea>
+    </div>
+
+    <!-- Professional Fields -->
+    <div id="professionalFields" class="toggle-content" style="display: none">
       <div class="form-group">
-        <label for="Username">Username</label>
+        <label for="experience">Experience (years)</label>
         <input
-          type="text"
+          type="number"
           class="form-control"
-          id="username"
-          name="username"
-          required
+          id="experience"
+          name="experience"
         />
       </div>
+
       <div class="form-group">
-        <label for="name">Name</label>
-        <input
-          type="text"
-          class="form-control"
-          id="name"
-          name="name"
-          required
-        />
+        <label for="service_id">Select Service</label>
+        <select id="service_id" class="form-control" name="service_id">
+          <option value="" disabled selected>Select a service</option>
+          {% for service in services %}
+          <option value="{{ service.id }}">{{ service.service_name }}</option>
+          {% endfor %}
+        </select>
       </div>
-      <div class="form-group">
-        <label>Role</label><br />
-        <div class="form-check form-check-inline">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="role"
-            id="customer"
-            value="customer"
-          />
-          <label class="form-check-label" for="customer">Customer</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="role"
-            id="professional"
-            value="professional"
-          />
-          <label class="form-check-label" for="professional"
-            >Professional</label
-          >
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          class="form-control"
-          id="password"
-          name="password"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label for="confirm_password">Confirm Password</label>
-        <input
-          type="text"
-          class="form-control"
-          id="confirm_password"
-          name="confirm_password"
-          required
-        />
-      </div>
-      <button type="submit" class="btn btn-primary">Register</button>
-    </form>
-  </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Register</button>
+  </form>
 </div>
+{% endblock %} {% block scripts %}
+<script>
+  function toggleFields() {
+    const userType = document.getElementById("userType").value;
+    const professionalFields = document.getElementById("professionalFields");
+    const experienceField = document.getElementById("experience");
+    const serviceField = document.getElementById("service_id");
+
+    if (userType === "customer") {
+      professionalFields.style.display = "none";
+      experienceField.required = false; // Remove required if hidden
+      serviceField.required = false; // Remove required if hidden
+    } else {
+      professionalFields.style.display = "block";
+      experienceField.required = true; // Set required if visible
+      serviceField.required = true; // Set required if visible
+    }
+  }
+
+  // Trigger the toggle function on page load to show the default fields
+  window.onload = toggleFields;
+</script>
 {% endblock %}

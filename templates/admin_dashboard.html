@@ -1,24 +1,201 @@
 {% extends "layout.html" %} {% block title %}Admin Dashboard - Household
 Services{% endblock %} {% block content %}
 <h2>Admin Dashboard</h2>
-<div class="row">
-  <div class="col-md-4">
-    <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-block"
-      >Manage Users</a
-    >
+<div class="flex-md-row d-flex justify-content-between align-item-center">
+  <div class="">
+    <a href="" class="btn btn-secondary btn-block">Home</a>
   </div>
-  <div class="col-md-4">
-    <a
-      href="{{ url_for('manage_services') }}"
-      class="btn btn-secondary btn-block"
-      >Manage Services</a
-    >
+  <div class="">
+    <a href="" class="btn btn-secondary btn-block">Search</a>
   </div>
-  <div class="col-md-4">
-    <a href="{{ url_for('view_reports') }}" class="btn btn-secondary btn-block"
-      >View Reports</a
-    >
+  <div class="">
+    <a href="" class="btn btn-secondary btn-block">Summary</a>
+  </div>
+  <div class="">
+    <a href="" class="btn btn-secondary btn-block">LogOut</a>
   </div>
 </div>
+<!-- Table -->
+<div class="container mt-4">
+  <h3>Services</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Service Name</th>
+        <th>Base Price</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Sample data, replace with your dynamic data from the database -->
+      <tr>
+        <td>1</td>
+        <td>Gardening</td>
+        <td>$50.00</td>
+        <td>
+          <a href="#" class="btn btn-warning btn-sm">Edit</a>
+          <a href="#" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Plumbing</td>
+        <td>$75.00</td>
+        <td>
+          <a href="#" class="btn btn-warning btn-sm">Edit</a>
+          <a href="#" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Cleaning</td>
+        <td>$30.00</td>
+        <td>
+          <a href="#" class="btn btn-warning btn-sm">Edit</a>
+          <a href="#" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Add New Service -->
+  <!-- Button to Open the Modal -->
+  <button id="addServiceBtn" class="btn btn-primary mb-3" onclick="openModal()">
+    Add New Service
+  </button>
+
+  <!-- The Modal -->
+  <div id="addServiceModal" style="display: none">
+    <div class="modal-content">
+      <span class="close" id="closeModal" style="cursor: pointer">&times;</span>
+      <h3>Add New Service</h3>
+      <form
+        id="serviceForm"
+        action="{{ url_for('add_service') }}"
+        method="POST"
+      >
+        <input
+          type="text"
+          id="service_name"
+          placeholder="Service Name"
+          name="service_name"
+          class="form-control"
+          required
+        />
+
+        <textarea
+          class="form-control"
+          name="service_description"
+          placeholder="Description"
+        ></textarea>
+        <input
+          type="number"
+          id="base_price"
+          class="form-control"
+          placeholder="Base Price"
+          name="base_price"
+          required
+        />
+        <input
+          type="number"
+          id="time_required"
+          placeholder="Time Required"
+          name="time_required"
+          class="form-control"
+          required
+        />
+        <button type="submit" class="btn btn-secondary mb-2">
+          Add Service
+        </button>
+        <button
+          type="button"
+          onclick="closeModal()"
+          id="cancelBtn"
+          class="btn btn-secondary mb-2"
+        >
+          Cancel
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <h3>Professionals</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Experience</th>
+        <th>Service Name</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Sample data, replace with your dynamic data from the database -->
+      <tr>
+        <td>1</td>
+        <td>John Doe</td>
+        <td>5 years</td>
+        <td>Gardening</td>
+        <td>
+          <a href="#" class="btn btn-warning btn-sm">Edit</a>
+          <a href="#" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Jane Smith</td>
+        <td>3 years</td>
+        <td>Plumbing</td>
+        <td>
+          <a href="#" class="btn btn-warning btn-sm">Edit</a>
+          <a href="#" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Service Requests</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Assigned Professional</th>
+        <th>Requested Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Sample data, replace with your dynamic data from the database -->
+      <tr>
+        <td>1</td>
+        <td>John Doe</td>
+        <td>2023-10-01</td>
+        <td>Requested</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Jane Smith</td>
+        <td>2023-10-02</td>
+        <td>Accepted</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>-</td>
+        <td>2023-10-03</td>
+        <td>Closed</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 <!-- Additional admin functionalities -->
+<script>
+  function closeModal() {
+    document.getElementById("addServiceModal").style.display = "none";
+  }
+  function openModal() {
+    document.getElementById("addServiceModal").style.display = "block";
+  }
+</script>
 {% endblock %}
