@@ -93,7 +93,12 @@ endblock %} {% block content %}
         <select id="service_id" class="form-control" name="service_id">
           <option value="" disabled selected>Select a service</option>
           {% for service in services %}
-          <option value="{{ service.id }}">{{ service.service_name }}</option>
+          <option
+            value="{{ service.id }}"
+            data-service-name="{{service.service_name}}"
+          >
+            {{ service.service_name }}
+          </option>
           {% endfor %}
         </select>
       </div>

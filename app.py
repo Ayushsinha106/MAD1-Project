@@ -43,7 +43,17 @@ def login_post():
         flash('Invalid password','danger')
         return redirect(url_for("login"))
     
-    return redirect(url_for("index"))
+    if user.role == 'professional':
+        professional = Professional.query.filter_by(id=user.id).first()
+        session['user_role'] = 'professional'
+        session['user_id'] = user.id
+        # session['service_id'] = professional.service_id
+        return redirect(url_for("professional_dashboard"))
+    else:
+        customer = Customer.query.filter_by(id=user.id).first()
+        session['user_role'] = 'customer'
+        session['user_id'] = user.id
+        return redirect(url_for("customer_dashboard"))
 
 @app.route("/register")
 def register():
@@ -76,21 +86,23 @@ def register_post():
         return redirect(url_for("register"))
     
     password_hash = generate_password_hash(password)
-    id = int(uuid.uuid4().int >> 64)
+    id = int(uuid.uuid4().int >> 100)
 
-    if role == 'Professional':
+    if role == 'professional':
         service_id = request.form.get("service_id")
+        service_name = request.form.get("service_name")
         experience = request.form.get("experience")
         if not service_id:
             flash('Please select a service','danger')
             return redirect(url_for("register"))
-        new_professional = Professional(id=id,role=role, service_id=service_id,address=address, pincode=pincode, experience=experience)
+        new_professional = Professional(id=id,service_name=service_name, service_id=service_id,address=address, pincode=pincode, experience=experience)
         new_user = User(id=id, username=username, passhash=password_hash, name=name, role=role)
 
         try:
             db.session.add(new_user)
             db.session.add(new_professional)
             db.session.commit()
+            flash('professional user added successfully!','success')
             return redirect(url_for("login"))
         except Exception as e:
             db.session.rollback()
@@ -144,6 +156,51 @@ def add_service():
     else:
         flash('Unauthorized action!', 'danger')
         return redirect(url_for('login'))
+
+@app.route('/customer_dashboard')
+def customer_dashboard():
+    # Logic for the customer dashboard
+
+    return render_template('customer_dashboard.html')
+
+@app.route('/professional_dashboard')
+def professional_dashboard():
+    # Logic for the professional dashboard
+    user_id = session['user_id']
+    professional = Professional.query.all()
+    service = Service.query.all()
+    flash(session['user_id'],'success')
+    flash(professional,'success')
+    flash(service,'success')
+    return render_template('professional_dashboard.html', professional=professional, service=service)
+
+@app.route('/accept_service/<int:service_id>')
+def accept_service(service_id):
+    service = ServiceRequest.query.get(service_id)
+    if service:
+        service.status = 'accepted'  # Change status as needed
+        db.session.commit()
+        flash('Service accepted!', 'success')
+    else:
+        flash('Service not found.', 'danger')
+    return redirect(url_for('professional_dashboard'))
+
+@app.route('/reject_service/<int:service_id>')
+def reject_service(service_id):
+    service = ServiceRequest.query.get(service_id)
+    if service:
+        service.status = 'rejected'  # Change status as needed
+        db.session.commit()
+        flash('Service rejected!', 'danger')
+    else:
+        flash('Service not found.', 'danger')
+    return redirect(url_for('professional_dashboard'))
+
+@app.route('/profile')
+def profile():
+    # Implement profile viewing/editing logic here
+    return render_template('profile.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
