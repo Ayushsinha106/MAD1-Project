@@ -1,0 +1,235 @@
+{% extends "layout.html" %} {% block title %}Customer Dashboard{% endblock %} {%
+block content %}
+<div class="container mt-4">
+  <!-- Navbar for Customer Dashboard -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Customer Dashboard</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Search</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Summary</a></li>
+        <li class="nav-item">
+          <a class="nav-link" href="">Logout</a>
+        </li>
+      </ul>
+    </div>
+    <div class="ml-auto">
+      <span>Welcome, {{ user.name }}</span>
+      <a href="#" class="btn btn-primary ml-3">Profile</a>
+    </div>
+  </nav>
+
+  <!-- Service Selection Section -->
+  <div class="my-4">
+    <h4>Select a Service</h4>
+    <div class="form-group">
+      <select
+        class="form-control"
+        id="serviceSelect"
+        onchange="fetchPackages()"
+      >
+        <option value="" disabled selected>Select a service</option>
+        {% for service in services %}
+        <option value="{{ service.id }}">{{ service.service_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Packages Display Area -->
+    <div id="packageDisplay" class="mt-4">
+      <h5>Available Packages</h5>
+      <div id="packageList"></div>
+    </div>
+  </div>
+
+  <!-- Service History Section -->
+  <div class="mt-5">
+    <h4>Service History</h4>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Service Name</th>
+          <th>Professional Name</th>
+          <th>Phone Number</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for request in service_history %}
+        <tr>
+          <td>{{ request.id }}</td>
+          <td>{{ request.service_name }}</td>
+          <td>{{ request.professional_name }}</td>
+          <td>{{ request.professional_phone }}</td>
+          <td>{{ request.status }}</td>
+          <td>
+            {% if request.status == 'requested' %}
+            <button class="btn btn-info" onclick="showModal({{ request.id }})">
+              View
+            </button>
+            {% else %}
+            <span class="badge badge-success">Closed</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal for Service Request Details -->
+  <div
+    class="modal fade"
+    id="serviceModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="serviceModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="serviceModalLabel">
+            Service Request Details
+          </h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Request ID:</strong> <span id="modalRequestId"></span></p>
+          <p>
+            <strong>Service Name:</strong> <span id="modalServiceName"></span>
+          </p>
+          <p>
+            <strong>Description:</strong> <span id="modalDescription"></span>
+          </p>
+          <p><strong>Date:</strong> <span id="modalDate"></span></p>
+          <p>
+            <strong>Professional Name:</strong>
+            <span id="modalProfessionalName"></span>
+          </p>
+          <p>
+            <strong>Professional ID:</strong>
+            <span id="modalProfessionalId"></span>
+          </p>
+          <p><strong>Contact No:</strong> <span id="modalContactNo"></span></p>
+          <div class="form-group">
+            <label for="rating">Rating</label>
+            <select id="rating" class="form-control">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="remarks">Remarks</label>
+            <textarea
+              id="remarks"
+              class="form-control"
+              rows="3"
+              placeholder="Enter any remarks"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Close
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            onclick="submitReview()"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  function fetchPackages() {
+    const serviceId = document.getElementById("serviceSelect").value;
+    if (!serviceId) return;
+
+    // Fetch packages from the server based on the selected service
+    fetch(`/get-packages/${serviceId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const packageList = document.getElementById("packageList");
+        packageList.innerHTML = data.packages
+          .map(
+            (pkg) => `
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">${pkg.name}</h5>
+              <p class="card-text">${pkg.description}</p>
+              <p><strong>Price:</strong> ${pkg.price}</p>
+              <button class="btn btn-primary" onclick="bookService(${pkg.id})">Book</button>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+      });
+  }
+
+  function showModal(requestId) {
+    // Fetch the details of the service request and populate the modal
+    fetch(`/get-request-details/${requestId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById("modalRequestId").textContent = data.id;
+        document.getElementById("modalServiceName").textContent =
+          data.service_name;
+        document.getElementById("modalDescription").textContent =
+          data.description;
+        document.getElementById("modalDate").textContent = data.date;
+        document.getElementById("modalProfessionalName").textContent =
+          data.professional_name;
+        document.getElementById("modalProfessionalId").textContent =
+          data.professional_id;
+        document.getElementById("modalContactNo").textContent = data.contact_no;
+        $("#serviceModal").modal("show");
+      });
+  }
+
+  function submitReview() {
+    const requestId = document.getElementById("modalRequestId").textContent;
+    const rating = document.getElementById("rating").value;
+    const remarks = document.getElementById("remarks").value;
+
+    // Submit the review to the server
+    fetch(`/submit-review`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ request_id: requestId, rating, remarks }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Review submitted successfully!");
+          $("#serviceModal").modal("hide");
+          // Refresh the service history or update the UI accordingly
+        } else {
+          alert("Failed to submit review.");
+        }
+      });
+  }
+</script>
+{% endblock %}

@@ -89,6 +89,15 @@ endblock %} {% block content %}
       </div>
 
       <div class="form-group">
+        <h4>Description</h4>
+        <textarea
+          name="description"
+          id="description"
+          placeholder="description"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
         <label for="service_id">Select Service</label>
         <select id="service_id" class="form-control" name="service_id">
           <option value="" disabled selected>Select a service</option>
@@ -114,15 +123,18 @@ endblock %} {% block content %}
     const professionalFields = document.getElementById("professionalFields");
     const experienceField = document.getElementById("experience");
     const serviceField = document.getElementById("service_id");
+    const descriptionField = document.getElementById("description");
 
     if (userType === "customer") {
       professionalFields.style.display = "none";
       experienceField.required = false; // Remove required if hidden
       serviceField.required = false; // Remove required if hidden
+      descriptionField.required = false; // Remove required if hidden
     } else {
       professionalFields.style.display = "block";
       experienceField.required = true; // Set required if visible
       serviceField.required = true; // Set required if visible
+      descriptionField.required = true; // Set required if visible
     }
   }
 

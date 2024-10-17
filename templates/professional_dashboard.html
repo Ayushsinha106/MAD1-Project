@@ -20,7 +20,7 @@
       </ul>
     </div>
     <span class="navbar-text">
-      <a href="">Profile {{professional.username}}</a>
+      <a href="">Profile {{user.username}}</a>
     </span>
   </nav>
 
@@ -36,21 +36,21 @@
       </tr>
     </thead>
     <tbody>
-      {% for service in today_services %}
+      {% for ser in service %}
       <tr>
-        <td>{{ service.id }}</td>
-        <td>{{ service.customer.name }}</td>
-        <td>{{ service.customer.contact_phone }}</td>
+        <td>{{ ser.id }}</td>
+        <td>{{ ser.service_name }}</td>
+        <td>{{ ser.description }}</td>
         <!-- Ensure the Customer model has this attribute -->
-        <td>{{ service.customer.address }}</td>
+        <td>{{ ser.price }}</td>
         <td>
           <a
-            href="{{ url_for('accept_service', service_id=service.id) }}"
+            href="{{ url_for('accept_service', service_id=ser.id) }}"
             class="btn btn-success"
             >Accept</a
           >
           <a
-            href="{{ url_for('reject_service', service_id=service.id) }}"
+            href="{{ url_for('reject_service', service_id=ser.id) }}"
             class="btn btn-danger"
             >Reject</a
           >

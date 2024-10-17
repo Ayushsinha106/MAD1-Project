@@ -30,6 +30,7 @@ def login():
 def login_post():
     username = request.form.get("username")
     password = request.form.get("password")
+    print("login 1")
 
     if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
         session['user_role'] = "admin"
@@ -42,7 +43,7 @@ def login_post():
     if not check_password_hash(user.passhash,password):
         flash('Invalid password','danger')
         return redirect(url_for("login"))
-    
+    print("login 2")
     if user.role == 'professional':
         professional = Professional.query.filter_by(id=user.id).first()
         session['user_role'] = 'professional'
@@ -50,6 +51,7 @@ def login_post():
         # session['service_id'] = professional.service_id
         return redirect(url_for("professional_dashboard"))
     else:
+        print("login as customer")
         customer = Customer.query.filter_by(id=user.id).first()
         session['user_role'] = 'customer'
         session['user_id'] = user.id
@@ -72,6 +74,7 @@ def register_post():
     address = request.form.get("address")
 
     flash(role,'success')
+    print(role=='professional',role,"role")
     if not username or not password or not confirm_password or not role:
         flash('Please fill out all fields','danger')
         return redirect(url_for("register"))
@@ -92,10 +95,12 @@ def register_post():
         service_id = request.form.get("service_id")
         service_name = request.form.get("service_name")
         experience = request.form.get("experience")
+        description = request.form.get("description")
+        print(service_name, service_id, experience,description)
         if not service_id:
             flash('Please select a service','danger')
             return redirect(url_for("register"))
-        new_professional = Professional(id=id,service_name=service_name, service_id=service_id,address=address, pincode=pincode, experience=experience)
+        new_professional = Professional(id=id, service_id=service_id,address=address, pincode=pincode, experience=experience,description=description)
         new_user = User(id=id, username=username, passhash=password_hash, name=name, role=role)
 
         try:
@@ -115,6 +120,7 @@ def register_post():
         db.session.add(new_user)
         db.session.add(new_customer)
         db.session.commit()
+        flash('customer user added successfully!','success')
         return redirect(url_for("login"))
     except Exception as e:
         db.session.rollback()
@@ -160,19 +166,21 @@ def add_service():
 @app.route('/customer_dashboard')
 def customer_dashboard():
     # Logic for the customer dashboard
-
-    return render_template('customer_dashboard.html')
+    user_id = session['user_id']
+    customer = Customer.query.get(user_id)
+    service = Service.query.all()
+    user = User.query.get(user_id)
+    return render_template('customer_dashboard.html',user=user, customer=customer, services=service)
 
 @app.route('/professional_dashboard')
 def professional_dashboard():
     # Logic for the professional dashboard
     user_id = session['user_id']
-    professional = Professional.query.all()
+    professional = Professional.query.get(user_id)
+    user = User.query.get(user_id)
     service = Service.query.all()
-    flash(session['user_id'],'success')
-    flash(professional,'success')
-    flash(service,'success')
-    return render_template('professional_dashboard.html', professional=professional, service=service)
+    print(professional.address,service)
+    return render_template('professional_dashboard.html', professional=professional, service=service,user=user)
 
 @app.route('/accept_service/<int:service_id>')
 def accept_service(service_id):

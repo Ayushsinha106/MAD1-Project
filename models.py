@@ -29,7 +29,7 @@ class Professional(db.Model):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
-    service_name = db.Column(db.String(80), nullable=False)
+    # service_name = db.Column(db.String(80), nullable=False)
     experience = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Float, nullable=True)
