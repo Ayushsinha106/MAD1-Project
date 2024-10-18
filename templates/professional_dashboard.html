@@ -20,7 +20,7 @@
       </ul>
     </div>
     <span class="navbar-text">
-      <a href="">Profile {{user.username}}</a>
+      <a href="">Profile {{ user.username }}</a>
     </span>
   </nav>
 
@@ -36,21 +36,20 @@
       </tr>
     </thead>
     <tbody>
-      {% for ser in service %}
+      {% for service_request in today_services %}
       <tr>
-        <td>{{ ser.id }}</td>
-        <td>{{ ser.service_name }}</td>
-        <td>{{ ser.description }}</td>
-        <!-- Ensure the Customer model has this attribute -->
-        <td>{{ ser.price }}</td>
+        <td>{{ service_request.id }}</td>
+        <td>{{ service_request.customer.user.name }}</td>
+        <td>{{ service_request.customer.contact }}</td>
+        <td>{{ service_request.customer.address }}</td>
         <td>
           <a
-            href="{{ url_for('accept_service', service_id=ser.id) }}"
+            href="{{ url_for('accept_service', service_id=service_request.id) }}"
             class="btn btn-success"
             >Accept</a
           >
           <a
-            href="{{ url_for('reject_service', service_id=ser.id) }}"
+            href="{{ url_for('reject_service', service_id=service_request.id) }}"
             class="btn btn-danger"
             >Reject</a
           >
@@ -72,14 +71,13 @@
       </tr>
     </thead>
     <tbody>
-      {% for service in closed_services %}
+      {% for service_request in closed_services %}
       <tr>
-        <td>{{ service.id }}</td>
-        <td>{{ service.customer.name }}</td>
-        <td>{{ service.customer.contact_phone }}</td>
-        <td>{{ service.customer.address }}</td>
-        <td>{{ service.rating }}</td>
-        <!-- Adjust as needed -->
+        <td>{{ service_request.id }}</td>
+        <td>{{ service_request.customer.user.name }}</td>
+        <td>{{ service_request.customer.contact }}</td>
+        <td>{{ service_request.customer.address }}</td>
+        <td>{{ service_request.rating }}</td>
       </tr>
       {% endfor %}
     </tbody>

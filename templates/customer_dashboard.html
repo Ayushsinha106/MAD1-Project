@@ -20,26 +20,48 @@ block content %}
     </div>
   </nav>
 
-  <!-- Service Selection Section -->
   <div class="my-4">
     <h4>Select a Service</h4>
-    <div class="form-group">
-      <select
-        class="form-control"
-        id="serviceSelect"
-        onchange="fetchPackages()"
-      >
-        <option value="" disabled selected>Select a service</option>
-        {% for service in services %}
-        <option value="{{ service.id }}">{{ service.service_name }}</option>
-        {% endfor %}
-      </select>
-    </div>
+    <form method="POST" action="{{ url_for('select_service') }}">
+      <div class="form-group">
+        <select
+          class="form-control"
+          name="service_name"
+          onchange="this.form.submit()"
+          required
+        >
+          <option value="" disabled selected>Select a service</option>
+          {% for service in services %}
+          <option value="{{ service.service_name }}">
+            {{ service.service_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </form>
 
     <!-- Packages Display Area -->
     <div id="packageDisplay" class="mt-4">
       <h5>Available Packages</h5>
-      <div id="packageList"></div>
+      <div id="packageList">
+        {% if packages %} {% for pkg in packages %}
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">{{ pkg.service_name }}</h5>
+            <p class="card-text">{{ pkg.description }}</p>
+            <p><strong>Price:</strong> {{ pkg.price }}</p>
+            <form
+              method="POST"
+              action="{{ url_for('book_service', package_id=pkg.id) }}"
+            >
+              <button type="submit" class="btn btn-primary">Book</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %} {% else %}
+        <p>No packages available for this service.</p>
+        {% endif %}
+      </div>
     </div>
   </div>
 
@@ -61,9 +83,16 @@ block content %}
         {% for request in service_history %}
         <tr>
           <td>{{ request.id }}</td>
-          <td>{{ request.service_name }}</td>
-          <td>{{ request.professional_name }}</td>
-          <td>{{ request.professional_phone }}</td>
+          <td>{{ request.service.service_name }}</td>
+          <!-- Access the service_name through the relationship -->
+          <td>
+            {{ request.professional.name if request.professional else 'N/A' }}
+          </td>
+          <td>
+            {{ request.professional.contact if request.professional else 'N/A'
+            }}
+          </td>
+
           <td>{{ request.status }}</td>
           <td>
             {% if request.status == 'requested' %}

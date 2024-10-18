@@ -2,7 +2,7 @@ from flask import Flask, render_template,request, redirect,flash,url_for, sessio
 from flask_sqlalchemy import SQLAlchemy
 from models import db,User, Service, ServiceRequest, Review, Customer,Customer, Professional
 from werkzeug.security import generate_password_hash, check_password_hash
-import uuid
+import uuid, datetime
 
 app = Flask(__name__)
 
@@ -72,6 +72,7 @@ def register_post():
     role = request.form.get("role")
     pincode = request.form.get("pincode")
     address = request.form.get("address")
+    contact = request.form.get("contact")
 
     flash(role,'success')
     print(role=='professional',role,"role")
@@ -100,7 +101,7 @@ def register_post():
         if not service_id:
             flash('Please select a service','danger')
             return redirect(url_for("register"))
-        new_professional = Professional(id=id, service_id=service_id,address=address, pincode=pincode, experience=experience,description=description)
+        new_professional = Professional(id=id, service_id=service_id,address=address, pincode=pincode, experience=experience,description=description,contact=contact)
         new_user = User(id=id, username=username, passhash=password_hash, name=name, role=role)
 
         try:
@@ -114,7 +115,7 @@ def register_post():
             flash('Error in registering user: ' + str(e) , 'danger')
     
     # for customer
-    new_customer = Customer(id=id,address=address, pincode=pincode)
+    new_customer = Customer(id=id,address=address, pincode=pincode,contact=contact)
     new_user = User(id=id, username=username, passhash=password_hash, name=name, role=role)
     try:
         db.session.add(new_user)
@@ -170,7 +171,81 @@ def customer_dashboard():
     customer = Customer.query.get(user_id)
     service = Service.query.all()
     user = User.query.get(user_id)
+    
     return render_template('customer_dashboard.html',user=user, customer=customer, services=service)
+
+@app.route('/select-service', methods=['POST'])
+def select_service():
+    service_name = request.form.get('service_name')
+
+    if not service_name:
+        flash('Please select a service', 'danger')
+        return redirect(url_for('customer_dashboard'))
+
+    # Query packages related to the selected service ID
+    packages = Service.query.filter_by(service_name=service_name).all()
+    print(packages, 'packages')
+
+    user_id = session['user_id']
+    # Get the list of all services to display in the dropdown
+    services = Service.query.all()
+    customer = Customer.query.get(user_id)
+    user = User.query.get(user_id)
+
+    # Render the customer dashboard template with the available packages
+    return render_template('customer_dashboard.html', services=services, packages=packages,customer=customer,user=user)
+
+
+@app.route('/book-service/<int:package_id>', methods=['POST'])
+def book_service(package_id):
+    # Get the logged-in user's ID from the session
+    print(package_id, 'package_id')
+    user_id = session.get('user_id')
+    if not user_id:
+        flash('You must be logged in to book a service.', 'danger')
+        return redirect(url_for('login'))
+
+    # Query the customer from the User and Customer tables using the user ID
+    user = User.query.get(user_id)
+    customer = Customer.query.get(user_id)
+    if not customer:
+        flash('Customer not found.', 'danger')
+        return redirect(url_for('customer_dashboard'))
+
+    # Query the selected package by its ID
+    # package = Servive <------
+    package = Service.query.get(package_id)
+    if not package:
+        flash('Selected package not found.', 'danger')
+        return redirect(url_for('customer_dashboard'))
+
+    # Get the professional offering the service (assuming each package is tied to a professional)
+
+    # Create a new service request
+    service_request_id = int(uuid.uuid4().int >> 100)
+    new_service_request = ServiceRequest(
+        id=service_request_id,
+        customer_id=customer.id,
+        service_id=package.id,
+        date_of_request=datetime.datetime.utcnow(),
+        status='requested'
+    )
+
+    # Add the new service request to the database
+    try:
+        db.session.add(new_service_request)
+        db.session.commit()
+        flash('Service booked successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error booking service: {str(e)}', 'danger')
+
+    professional_name = "pendiing"
+    contact = "pending"
+
+    return render_template('customer_dashboard.html',user=user, services=Service.query.all(), professional_name=professional_name,contact=contact,service_history=ServiceRequest.query.all())
+
+
 
 @app.route('/professional_dashboard')
 def professional_dashboard():
@@ -179,8 +254,10 @@ def professional_dashboard():
     professional = Professional.query.get(user_id)
     user = User.query.get(user_id)
     service = Service.query.all()
+    today_services = ServiceRequest.query.filter_by(service_id=professional.service_id).all()
+    print(today_services, 'today_services')
     print(professional.address,service)
-    return render_template('professional_dashboard.html', professional=professional, service=service,user=user)
+    return render_template('professional_dashboard.html',today_services=today_services, closed_services=today_services,professional=professional, service=service,user=user)
 
 @app.route('/accept_service/<int:service_id>')
 def accept_service(service_id):

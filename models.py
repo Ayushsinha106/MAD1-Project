@@ -20,6 +20,7 @@ class Customer(db.Model):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     address = db.Column(db.Text, nullable=False)
     pincode = db.Column(db.String(6), nullable=False)
+    contact = db.Column(db.String(10), nullable=False)
 
     # Define relationship with ServiceRequest
     service_requests = db.relationship('ServiceRequest', back_populates='customer', lazy=True)
@@ -30,6 +31,7 @@ class Professional(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
     # service_name = db.Column(db.String(80), nullable=False)
+    contact = db.Column(db.String(10), nullable=False)
     experience = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Float, nullable=True)
@@ -42,7 +44,7 @@ class Professional(db.Model):
 class Service(db.Model):
     __tablename__ = 'service'
     id = db.Column(db.Integer, primary_key=True)
-    service_name = db.Column(db.String(80), unique=True, nullable=False)
+    service_name = db.Column(db.String(80), unique=False, nullable=False)
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
     time_required = db.Column(db.Integer, nullable=False)
