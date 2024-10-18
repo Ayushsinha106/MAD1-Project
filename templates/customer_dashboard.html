@@ -80,27 +80,75 @@ block content %}
         </tr>
       </thead>
       <tbody>
-        {% for request in service_history %}
+        {% for service_request in service_requests %}
         <tr>
-          <td>{{ request.id }}</td>
-          <td>{{ request.service.service_name }}</td>
+          <td>{{ service_request.id }}</td>
+          <td>{{ service_request.service.service_name }}</td>
           <!-- Access the service_name through the relationship -->
           <td>
-            {{ request.professional.name if request.professional else 'N/A' }}
+            {{ service_request.professional.user.name if
+            service_request.professional else 'N/A' }}
           </td>
           <td>
-            {{ request.professional.contact if request.professional else 'N/A'
-            }}
+            {{ service_request.professional.contact if
+            service_request.professional else 'N/A' }}
           </td>
-
-          <td>{{ request.status }}</td>
+          <td>{{ service_request.status }}</td>
           <td>
-            {% if request.status == 'requested' %}
-            <button class="btn btn-info" onclick="showModal({{ request.id }})">
+            {% if service_request.status == 'closed' %}
+            <span class="badge badge-success">Closed</span>
+            {% else %}
+            <button
+              type="button"
+              class="btn btn-info"
+              data-toggle="modal"
+              data-target="#viewModal"
+              onclick="showModal('{{ service_request.id }}')"
+            >
               View
             </button>
-            {% else %}
-            <span class="badge badge-success">Closed</span>
+            <!-- Modal here -->
+            <div class="modal fade" id="viewModal" tabindex="-1" role="dialog" aria-labelledby="viewModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="viewModalLabel">Edit Service Request</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal('viewModal')">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <form method="POST" action="{{ url_for('edit_service_request', request_id=service_request.id) }}">
+                    <div class="modal-body">
+                      <div class="form-group">
+                        <label for="date_of_request">Date of Request</label>
+                        <input type="text" class="form-control" name="date_of_request" id="date_of_request" value="{{ service_request.date_of_request }}" required disabled />
+                      </div>
+                      <div class="form-group">
+                        <label for="status">Status</label>
+                        <select class="form-control" name="status" id="status">
+                          <option value="requested" {% if service_request.status == 'requested' %} selected {% endif %}>Requested</option>
+                          <option value="accepted" {% if service_request.status == 'accepted' %} selected {% endif %}>Accepted</option>
+                          <option value="closed" {% if service_request.status == 'closed' %} selected {% endif %}>Closed</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label for="remarks">Remarks</label>
+                        <textarea class="form-control" name="remarks" id="remarks">{{ service_request.remarks }}</textarea>
+                      </div>
+                      <div class="form-group">
+                        <label for="rating">Rating (0-5)</label>
+                        <input type="number" class="form-control" name="rating" id="rating" min="0" max="5" value="{{ service_request.rating or 0 }}" />
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeModal('viewModal')">Close</button>
+                      <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            
             {% endif %}
           </td>
         </tr>
@@ -110,19 +158,20 @@ block content %}
   </div>
 
   <!-- Modal for Service Request Details -->
-  <div
+  {% for service_request in service_requests %}
+  <!-- <div
     class="modal fade"
-    id="serviceModal"
+    id="viewModal{{ service_request.id }}"
     tabindex="-1"
     role="dialog"
-    aria-labelledby="serviceModalLabel"
+    aria-labelledby="viewModalLabel{{ service_request.id }}"
     aria-hidden="true"
   >
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="serviceModalLabel">
-            Service Request Details
+          <h5 class="modal-title" id="viewModalLabel{{ service_request.id }}">
+            Edit Service Request #{{ service_request.id }}
           </h5>
           <button
             type="button"
@@ -133,132 +182,111 @@ block content %}
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body">
-          <p><strong>Request ID:</strong> <span id="modalRequestId"></span></p>
-          <p>
-            <strong>Service Name:</strong> <span id="modalServiceName"></span>
-          </p>
-          <p>
-            <strong>Description:</strong> <span id="modalDescription"></span>
-          </p>
-          <p><strong>Date:</strong> <span id="modalDate"></span></p>
-          <p>
-            <strong>Professional Name:</strong>
-            <span id="modalProfessionalName"></span>
-          </p>
-          <p>
-            <strong>Professional ID:</strong>
-            <span id="modalProfessionalId"></span>
-          </p>
-          <p><strong>Contact No:</strong> <span id="modalContactNo"></span></p>
-          <div class="form-group">
-            <label for="rating">Rating</label>
-            <select id="rating" class="form-control">
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
+        <form
+          action="{{ url_for('edit_service_request', request_id=service_request.id) }}"
+          method="POST"
+        >
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="date_of_request">Date of Request</label>
+              <input
+                type="date"
+                class="form-control"
+                name="date_of_request"
+                value="{{ service_request.date_of_request }}"
+                {%
+                if
+                service_request.status
+                !="requested"
+                %}
+                readonly
+                {%
+                endif
+                %}
+              />
+            </div>
+            <div class="form-group">
+              <label for="completion_status">Completion Status</label>
+              <input
+                type="text"
+                class="form-control"
+                name="completion_status"
+                value="{{ service_request.completion_status }}"
+                {%
+                if
+                service_request.status
+                !="requested"
+                %}
+                readonly
+                {%
+                endif
+                %}
+              />
+            </div>
+            <div class="form-group">
+              <label for="remarks">Remarks</label>
+              <textarea class="form-control" name="remarks" rows="3">
+{{ service_request.remarks }}</textarea
+              >
+            </div>
+            {% if service_request.status == 'accepted' %}
+            <div class="form-group">
+              <label for="rating">Rating (0-5)</label>
+              <input
+                type="number"
+                class="form-control"
+                name="rating"
+                min="0"
+                max="5"
+              />
+            </div>
+            {% endif %}
           </div>
-          <div class="form-group">
-            <label for="remarks">Remarks</label>
-            <textarea
-              id="remarks"
-              class="form-control"
-              rows="3"
-              placeholder="Enter any remarks"
-            ></textarea>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+            {% if service_request.status == 'requested' %}
+            <button type="submit" class="btn btn-primary">Update</button>
+            {% endif %} {% if service_request.status == 'accepted' %}
+            <button
+              type="submit"
+              class="btn btn-success"
+              name="action"
+              value="close"
+            >
+              Close Service
+            </button>
+            {% endif %}
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">
-            Close
-          </button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            onclick="submitReview()"
-          >
-            Submit
-          </button>
-        </div>
+        </form>
       </div>
     </div>
-  </div>
+  </div> -->
+  {% endfor %}
 </div>
 {% endblock %} {% block scripts %}
 <script>
-  function fetchPackages() {
-    const serviceId = document.getElementById("serviceSelect").value;
-    if (!serviceId) return;
+  function showModal(serviceId) {
+    console.log("Opening modal for service ID:", serviceId);
 
-    // Fetch packages from the server based on the selected service
-    fetch(`/get-packages/${serviceId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        const packageList = document.getElementById("packageList");
-        packageList.innerHTML = data.packages
-          .map(
-            (pkg) => `
-          <div class="card mb-3">
-            <div class="card-body">
-              <h5 class="card-title">${pkg.name}</h5>
-              <p class="card-text">${pkg.description}</p>
-              <p><strong>Price:</strong> ${pkg.price}</p>
-              <button class="btn btn-primary" onclick="bookService(${pkg.id})">Book</button>
-            </div>
-          </div>
-        `
-          )
-          .join("");
-      });
+    // Open the modal using jQuery (if jQuery is loaded)
+    $("#viewModal").modal("show");
+
+    // Or using vanilla JavaScript if Bootstrap is loaded without jQuery
+    var modalElement = document.getElementById("viewModal");
+    var bootstrapModal = new bootstrap.Modal(modalElement);
+    bootstrapModal.show();
   }
-
-  function showModal(requestId) {
-    // Fetch the details of the service request and populate the modal
-    fetch(`/get-request-details/${requestId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        document.getElementById("modalRequestId").textContent = data.id;
-        document.getElementById("modalServiceName").textContent =
-          data.service_name;
-        document.getElementById("modalDescription").textContent =
-          data.description;
-        document.getElementById("modalDate").textContent = data.date;
-        document.getElementById("modalProfessionalName").textContent =
-          data.professional_name;
-        document.getElementById("modalProfessionalId").textContent =
-          data.professional_id;
-        document.getElementById("modalContactNo").textContent = data.contact_no;
-        $("#serviceModal").modal("show");
-      });
+  function closeModal(modalId) {
+    var modalElement = document.getElementById(modalId);
+    var modal = bootstrap.Modal.getInstance(modalElement);
+    modal.hide();
   }
-
-  function submitReview() {
-    const requestId = document.getElementById("modalRequestId").textContent;
-    const rating = document.getElementById("rating").value;
-    const remarks = document.getElementById("remarks").value;
-
-    // Submit the review to the server
-    fetch(`/submit-review`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ request_id: requestId, rating, remarks }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          alert("Review submitted successfully!");
-          $("#serviceModal").modal("hide");
-          // Refresh the service history or update the UI accordingly
-        } else {
-          alert("Failed to submit review.");
-        }
-      });
-  }
+  
 </script>
 {% endblock %}

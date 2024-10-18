@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from models import db,User, Service, ServiceRequest, Review, Customer,Customer, Professional
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid, datetime
+from sqlalchemy.orm import joinedload
 
 app = Flask(__name__)
 
@@ -171,8 +172,9 @@ def customer_dashboard():
     customer = Customer.query.get(user_id)
     service = Service.query.all()
     user = User.query.get(user_id)
+    service_requests = ServiceRequest.query.filter_by(customer_id=user_id).all()
     
-    return render_template('customer_dashboard.html',user=user, customer=customer, services=service)
+    return render_template('customer_dashboard.html',service_requests=service_requests,user=user, customer=customer, services=service)
 
 @app.route('/select-service', methods=['POST'])
 def select_service():
@@ -254,21 +256,42 @@ def professional_dashboard():
     professional = Professional.query.get(user_id)
     user = User.query.get(user_id)
     service = Service.query.all()
-    today_services = ServiceRequest.query.filter_by(service_id=professional.service_id).all()
+    today_services = ServiceRequest.query.filter_by(service_id=professional.service_id).filter_by(status='requested').all()
+    closed_services = ServiceRequest.query.filter_by(service_id=professional.service_id).filter_by(status='closed').all()
     print(today_services, 'today_services')
     print(professional.address,service)
-    return render_template('professional_dashboard.html',today_services=today_services, closed_services=today_services,professional=professional, service=service,user=user)
+    return render_template('professional_dashboard.html',today_services=today_services, closed_services=closed_services,professional=professional, service=service,user=user)
 
 @app.route('/accept_service/<int:service_id>')
 def accept_service(service_id):
-    service = ServiceRequest.query.get(service_id)
-    if service:
-        service.status = 'accepted'  # Change status as needed
+    service_request = ServiceRequest.query.get(service_id)
+    if service_request:
+        service_request.status = 'accepted'  # Change status as needed
+        service_request.professional_id = session['user_id']
         db.session.commit()
         flash('Service accepted!', 'success')
     else:
         flash('Service not found.', 'danger')
     return redirect(url_for('professional_dashboard'))
+
+@app.route('/edit_service_request/<int:request_id>', methods=['POST'])
+def edit_service_request(request_id):
+    service_request = ServiceRequest.query.get_or_404(request_id)
+
+    service_request.status = request.form.get('status')
+    service_request.remarks = request.form.get('remarks')
+    service_request.rating = request.form.get('rating')
+    # If the status is 'accepted' and the customer is closing the request
+
+    try:
+        db.session.commit()
+        flash('Service request updated successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating service request: {e}', 'danger')
+
+    return redirect(url_for('customer_dashboard'))
+
 
 @app.route('/reject_service/<int:service_id>')
 def reject_service(service_id):
