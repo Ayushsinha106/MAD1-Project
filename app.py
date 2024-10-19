@@ -44,7 +44,6 @@ def login_post():
     if not check_password_hash(user.passhash,password):
         flash('Invalid password','danger')
         return redirect(url_for("login"))
-    print("login 2")
     if user.role == 'professional':
         professional = Professional.query.filter_by(id=user.id).first()
         session['user_role'] = 'professional'
@@ -60,7 +59,8 @@ def login_post():
 
 @app.route("/register")
 def register():
-    services = Service.query.all()
+    services =  db.session.query(Service.service_name).distinct().all()
+
     return render_template("register.html", services=services)
 
 @app.route("/register", methods=["POST"])
@@ -75,7 +75,6 @@ def register_post():
     address = request.form.get("address")
     contact = request.form.get("contact")
 
-    flash(role,'success')
     print(role=='professional',role,"role")
     if not username or not password or not confirm_password or not role:
         flash('Please fill out all fields','danger')
@@ -94,15 +93,15 @@ def register_post():
     id = int(uuid.uuid4().int >> 100)
 
     if role == 'professional':
-        service_id = request.form.get("service_id")
+        # service_id = request.form.get("service_id")
         service_name = request.form.get("service_name")
         experience = request.form.get("experience")
         description = request.form.get("description")
-        print(service_name, service_id, experience,description)
-        if not service_id:
+        print(service_name, experience,description)
+        if not service_name:
             flash('Please select a service','danger')
             return redirect(url_for("register"))
-        new_professional = Professional(id=id, service_id=service_id,address=address, pincode=pincode, experience=experience,description=description,contact=contact)
+        new_professional = Professional(id=id, service_name=service_name,address=address, pincode=pincode, experience=experience,description=description,contact=contact)
         new_user = User(id=id, username=username, passhash=password_hash, name=name, role=role)
 
         try:
@@ -170,11 +169,12 @@ def customer_dashboard():
     # Logic for the customer dashboard
     user_id = session['user_id']
     customer = Customer.query.get(user_id)
-    service = Service.query.all()
+    services =  db.session.query(Service.service_name).distinct().all()
+
     user = User.query.get(user_id)
     service_requests = ServiceRequest.query.filter_by(customer_id=user_id).all()
     
-    return render_template('customer_dashboard.html',service_requests=service_requests,user=user, customer=customer, services=service)
+    return render_template('customer_dashboard.html',service_requests=service_requests,user=user, customer=customer, services=services)
 
 @app.route('/select-service', methods=['POST'])
 def select_service():
@@ -190,12 +190,39 @@ def select_service():
 
     user_id = session['user_id']
     # Get the list of all services to display in the dropdown
-    services = Service.query.all()
+    services = db.session.query(Service.service_name).distinct().all()
     customer = Customer.query.get(user_id)
     user = User.query.get(user_id)
+    service_requests = ServiceRequest.query.filter_by(customer_id=user_id).all()
+
 
     # Render the customer dashboard template with the available packages
-    return render_template('customer_dashboard.html', services=services, packages=packages,customer=customer,user=user)
+    return render_template('customer_dashboard.html', services=services, packages=packages,customer=customer,user=user,service_requests=service_requests)
+
+@app.route('/edit_service_request/<int:request_id>', methods=['POST'])
+def edit_service_request(request_id):
+    service_request = ServiceRequest.query.get_or_404(request_id)
+
+    service_request.status = request.form.get('status')
+    if service_request.status == 'closed' and service_request.professional_id==None:
+        service_request.rating = None
+        service_request.remarks = None
+    else:
+        service_request.remarks = request.form.get('remarks')
+        service_request.rating = request.form.get('rating')
+        professional = Professional.query.get(service_request.professional_id)
+        professional.service_id = None
+    # If the status is 'accepted' and the customer is closing the request
+    print(service_request.professional_id, 'service_request.professional_id')
+    try:
+        db.session.commit()
+        flash('Service request updated successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating service request: {e}', 'danger')
+
+    return redirect(url_for('customer_dashboard'))
+
 
 
 @app.route('/book-service/<int:package_id>', methods=['POST'])
@@ -244,8 +271,10 @@ def book_service(package_id):
         flash(f'Error booking service: {str(e)}', 'danger')
 
     service_requests = ServiceRequest.query.filter_by(customer_id=customer.id).all()
+    services = db.session.query(Service.service_name).distinct().all()
 
-    return render_template('customer_dashboard.html', services=Service.query.all(), user=user,customer=customer,packages=packages,service_requests=service_requests)
+
+    return render_template('customer_dashboard.html', services=services, user=user,customer=customer,packages=packages,service_requests=service_requests)
 
 
 
@@ -256,41 +285,40 @@ def professional_dashboard():
     professional = Professional.query.get(user_id)
     user = User.query.get(user_id)
     service = Service.query.all()
-    today_services = ServiceRequest.query.filter_by(service_id=professional.service_id).filter_by(status='requested').all()
-    closed_services = ServiceRequest.query.filter_by(service_id=professional.service_id).filter_by(status='closed').all()
+    accepted_services = ServiceRequest.query.filter_by(professional_id=user_id).all()
+    today_services = (
+    db.session.query(ServiceRequest)
+    .join(Service)
+    .filter(Service.service_name == professional.service_name)
+    .filter(ServiceRequest.status == 'requested')
+    .all()
+)
+    closed_services = (
+    db.session.query(ServiceRequest)
+    .join(Service)
+    .filter(Service.service_name == professional.service_name)
+    .filter(ServiceRequest.status == 'closed')
+    .all()
+)
     print(today_services, 'today_services')
     print(professional.address,service)
-    return render_template('professional_dashboard.html',today_services=today_services, closed_services=closed_services,professional=professional, service=service,user=user)
+    return render_template('professional_dashboard.html',accepted_services=accepted_services,today_services=today_services, closed_services=closed_services,professional=professional, service=service,user=user)
 
 @app.route('/accept_service/<int:service_id>')
 def accept_service(service_id):
     service_request = ServiceRequest.query.get(service_id)
+    professional = Professional.query.get(session['user_id'])
     if service_request:
-        service_request.status = 'accepted'  # Change status as needed
+        if service_request.status == 'accepted':
+            flash('This service is already accepted byt Someone', 'danger')  # Change status as needed
+            return redirect(url_for('professional_dashboard'))
         service_request.professional_id = session['user_id']
+        professional.service_id = service_request.service_id
         db.session.commit()
         flash('Service accepted!', 'success')
     else:
         flash('Service not found.', 'danger')
     return redirect(url_for('professional_dashboard'))
-
-@app.route('/edit_service_request/<int:request_id>', methods=['POST'])
-def edit_service_request(request_id):
-    service_request = ServiceRequest.query.get_or_404(request_id)
-
-    service_request.status = request.form.get('status')
-    service_request.remarks = request.form.get('remarks')
-    service_request.rating = request.form.get('rating')
-    # If the status is 'accepted' and the customer is closing the request
-
-    try:
-        db.session.commit()
-        flash('Service request updated successfully', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error updating service request: {e}', 'danger')
-
-    return redirect(url_for('customer_dashboard'))
 
 
 @app.route('/reject_service/<int:service_id>')

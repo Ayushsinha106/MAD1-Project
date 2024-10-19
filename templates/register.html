@@ -108,14 +108,11 @@ endblock %} {% block content %}
       </div>
 
       <div class="form-group">
-        <label for="service_id">Select Service</label>
-        <select id="service_id" class="form-control" name="service_id">
+        <label for="service_name">Select Service</label>
+        <select id="service_name" class="form-control" name="service_name">
           <option value="" disabled selected>Select a service</option>
           {% for service in services %}
-          <option
-            value="{{ service.id }}"
-            data-service-name="{{service.service_name}}"
-          >
+          <option value="{{ service.service_name }}">
             {{ service.service_name }}
           </option>
           {% endfor %}
@@ -132,7 +129,7 @@ endblock %} {% block content %}
     const userType = document.getElementById("userType").value;
     const professionalFields = document.getElementById("professionalFields");
     const experienceField = document.getElementById("experience");
-    const serviceField = document.getElementById("service_id");
+    const serviceField = document.getElementById("service_name");
     const descriptionField = document.getElementById("description");
 
     if (userType === "customer") {
