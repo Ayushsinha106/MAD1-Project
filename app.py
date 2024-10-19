@@ -202,16 +202,18 @@ def select_service():
 @app.route('/edit_service_request/<int:request_id>', methods=['POST'])
 def edit_service_request(request_id):
     service_request = ServiceRequest.query.get_or_404(request_id)
-
+    print(service_request.professional_id, 'service_request.professional_id')
     service_request.status = request.form.get('status')
-    if service_request.status == 'closed' and service_request.professional_id==None:
+    if service_request.status == 'closed' and service_request.professional_id == None:
         service_request.rating = None
         service_request.remarks = None
     else:
         service_request.remarks = request.form.get('remarks')
         service_request.rating = request.form.get('rating')
         professional = Professional.query.get(service_request.professional_id)
+        print(professional.service_id, 'professional.service_id')
         professional.service_id = None
+        print(professional.service_id, 'professional.service_id')
     # If the status is 'accepted' and the customer is closing the request
     print(service_request.professional_id, 'service_request.professional_id')
     try:
@@ -308,12 +310,14 @@ def professional_dashboard():
 def accept_service(service_id):
     service_request = ServiceRequest.query.get(service_id)
     professional = Professional.query.get(session['user_id'])
+    print(professional, 'professional')
     if service_request:
         if service_request.status == 'accepted':
             flash('This service is already accepted byt Someone', 'danger')  # Change status as needed
             return redirect(url_for('professional_dashboard'))
         service_request.professional_id = session['user_id']
         professional.service_id = service_request.service_id
+        service_request.status = 'accepted'
         db.session.commit()
         flash('Service accepted!', 'success')
     else:
