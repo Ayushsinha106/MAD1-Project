@@ -1,4 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy import JSON
 from datetime import datetime
 
 db = SQLAlchemy()
@@ -64,6 +66,8 @@ class ServiceRequest(db.Model):
     status = db.Column(db.String(20), default='requested', nullable=False)
     rating = db.Column(db.Integer, nullable=True)
     remarks = db.Column(db.Text, nullable=True)
+    rejected_by = db.Column(MutableList.as_mutable(JSON), default=[])
+
 
     # Relationships to other models
     customer = db.relationship('Customer', back_populates='service_requests')

@@ -23,6 +23,8 @@ ADMIN_PASSWORD = "admin123"
 def index():
     return render_template('index.html')
 
+
+
 @app.route("/login")
 def login():
     return render_template("login.html")
@@ -129,10 +131,22 @@ def register_post():
 
     return redirect(url_for("register"))
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out successfully.', 'success')
+    return redirect(url_for('login'))
+
+
 @app.route('/admin/dashboard')
 def admin_dashboard():
     if 'user_role' in session and session['user_role'] == 'admin':
-        return render_template('admin_dashboard.html')  # Create this template
+        services = Service.query.all()
+        professionals = Professional.query.all()
+        customers = Customer.query.all()
+        service_requests = ServiceRequest.query.all()
+        print(services,professionals,customers,service_requests, 'services,professionals,customers,service_requests')
+        return render_template('admin_dashboard.html',customers=customers,professionals=professionals,services=services,service_requests=service_requests)  # Create this template
     else:
         flash('Please log in first', 'danger')
         return redirect(url_for('login'))
@@ -163,6 +177,87 @@ def add_service():
     else:
         flash('Unauthorized action!', 'danger')
         return redirect(url_for('login'))
+
+@app.route('/update_service', methods=['POST'])
+def update_service():
+    service_id = request.form.get('service_id')
+    service = Service.query.get_or_404(service_id)
+    service_name = request.form.get('service_name')
+    description = request.form.get('description')
+    price = request.form.get('price')
+
+    if not service_name or not description or not price:
+        flash('All fields are required', 'danger')
+        return redirect(url_for('services'))
+
+    try:
+        service.service_name = service_name
+        service.description = description
+        service.price = float(price)
+        db.session.commit()
+        flash('Service updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating service: {str(e)}', 'danger')
+
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/delete_service/<int:service_id>', methods=['POST'])
+def delete_service(service_id):
+    service = Service.query.filter_by(id=service_id).first()
+    print(service, 'service')
+    if service:
+        try:
+            ServiceRequest.query.filter_by(service_id=service_id).delete()
+
+            db.session.delete(service)
+            db.session.commit()
+            flash('Service deleted successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error deleting service: ' + str(e), 'danger')
+    else:
+        flash('Service not found.', 'warning')
+    
+    return redirect(url_for('admin_dashboard'))  # Redirect to the desired page after deletion
+
+@app.route('/delete_professional/<int:professional_id>', methods=['POST'])
+def delete_professional(professional_id):
+    professional = Professional.query.filter_by(id=professional_id).first()
+    if professional:
+        try:
+            User.query.filter_by(id=professional_id).delete()
+
+            db.session.delete(professional)
+            db.session.commit()
+            flash('Service deleted successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error deleting service: ' + str(e), 'danger')
+    else:
+        flash('Service not found.', 'warning')
+    
+    return redirect(url_for('admin_dashboard'))  # Redirect to the desired page after deletion
+
+@app.route('/delete_customer/<int:customer_id>', methods=['POST'])
+def delete_customer(customer_id):
+    customer = Customer.query.filter_by(id=customer_id).first()
+    if customer:
+        try:
+            User.query.filter_by(id=customer_id).delete()
+            ServiceRequest.query.filter_by(customer_id=customer_id).delete()
+
+            db.session.delete(customer)
+            db.session.commit()
+            flash('Service deleted successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error deleting service: ' + str(e), 'danger')
+    else:
+        flash('Service not found.', 'warning')
+    
+    return redirect(url_for('admin_dashboard'))  # Redirect to the desired page after deletion
+
 
 @app.route('/customer_dashboard')
 def customer_dashboard():
@@ -275,8 +370,8 @@ def book_service(package_id):
     service_requests = ServiceRequest.query.filter_by(customer_id=customer.id).all()
     services = db.session.query(Service.service_name).distinct().all()
 
-
-    return render_template('customer_dashboard.html', services=services, user=user,customer=customer,packages=packages,service_requests=service_requests)
+    return redirect(url_for('customer_dashboard'))
+    # return render_template('customer_dashboard.html', services=services, user=user,customer=customer,packages=packages,service_requests=service_requests)
 
 
 
@@ -293,6 +388,7 @@ def professional_dashboard():
     .join(Service)
     .filter(Service.service_name == professional.service_name)
     .filter(ServiceRequest.status == 'requested')
+    .filter(ServiceRequest.rejected_by == [])
     .all()
 )
     closed_services = (
@@ -327,13 +423,19 @@ def accept_service(service_id):
 
 @app.route('/reject_service/<int:service_id>')
 def reject_service(service_id):
-    service = ServiceRequest.query.get(service_id)
-    if service:
-        service.status = 'rejected'  # Change status as needed
-        db.session.commit()
-        flash('Service rejected!', 'danger')
+    print(service_id, 'service_id')
+    professional_id = session['user_id']
+    service_request = ServiceRequest.query.get_or_404(service_id)
+
+    # Check if the professional has already rejected this service
+    if professional_id in service_request.rejected_by:
+        flash('You have already rejected this service', 'warning')
     else:
-        flash('Service not found.', 'danger')
+        # Add the professional's ID to the rejected_by list
+        service_request.rejected_by.append(professional_id)
+        db.session.commit()
+        flash('Service request has been successfully rejected', 'success')
+
     return redirect(url_for('professional_dashboard'))
 
 @app.route('/profile')
