@@ -222,6 +222,7 @@ def book_service(package_id):
         return redirect(url_for('customer_dashboard'))
 
     # Get the professional offering the service (assuming each package is tied to a professional)
+    packages = Service.query.filter_by(service_name=package_id).all()
 
     # Create a new service request
     service_request_id = int(uuid.uuid4().int >> 100)
@@ -242,10 +243,9 @@ def book_service(package_id):
         db.session.rollback()
         flash(f'Error booking service: {str(e)}', 'danger')
 
-    professional_name = "pendiing"
-    contact = "pending"
+    service_requests = ServiceRequest.query.filter_by(customer_id=customer.id).all()
 
-    return render_template('customer_dashboard.html',user=user, services=Service.query.all(), professional_name=professional_name,contact=contact,service_history=ServiceRequest.query.all())
+    return render_template('customer_dashboard.html', services=Service.query.all(), user=user,customer=customer,packages=packages,service_requests=service_requests)
 
 
 
