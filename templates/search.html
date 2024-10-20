@@ -1,0 +1,177 @@
+{% extends "layout.html" %} {% block title %}Search - Household Services{%
+endblock %} {% block content %}
+<h2>Search</h2>
+<div class="form-group">
+  <label for="search_term">Enter search term:</label>
+  <input
+    type="text"
+    class="form-control"
+    id="search_term"
+    name="search_term"
+    placeholder="Type to search..."
+  />
+</div>
+
+<h3 class="my-4">Search Results:</h3>
+{% if session.get('user_role') == 'admin' %}
+<h4>Service Requests:</h4>
+<div class="table-responsive admin">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Requested By</th>
+        <th>Assigned Professional</th>
+        <th>Requested Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for service_request in service_requests %}
+      <tr class="item">
+        <td>{{service_request.id}}</td>
+        <td>
+          {{ service_request.customer.user.name if service_request.professional
+          else 'N/A' }}
+        </td>
+        <td>
+          {{ service_request.professional.user.name if
+          service_request.professional else 'N/A' }}
+        </td>
+        <td>{{service_request.date_of_request.strftime('%Y-%m-%d') }}</td>
+        <td>{{service_request.status}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<h4>Customers:</h4>
+<div class="table-responsive admin">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Contact</th>
+        <th>Pincode</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Sample data, replace with your dynamic data from the database -->
+      {% for customer in customers %}
+      <tr class="item">
+        <td>{{customer.id}}</td>
+        <td>{{customer.user.name}}</td>
+        <td>{{customer.address}}</td>
+        <td>{{customer.contact}}</td>
+        <td>{{customer.pincode}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<h4>Professionals:</h4>
+<div class="table-responsive admin">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Experience</th>
+        <th>Service Name</th>
+        <th>Pincode</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Sample data, replace with your dynamic data from the database -->
+      {% for professional in professionals %}
+      <tr class="item">
+        <td>{{professional.id}}</td>
+        <td>{{professional.user.name}}</td>
+        <td>{{professional.experience}}</td>
+        <td>{{professional.service_name}}</td>
+        <td>{{professional.pincode}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% elif session.get('user_role') == 'customer' %}
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Service Name</th>
+        <th>Base Price</th>
+        <th>Description</th>
+        <th>Time Required</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Sample data, replace with your dynamic data from the database -->
+      {% for service in services %}
+      <tr class="item">
+        <td>{{service.id}}</td>
+        <td>{{service.service_name}}</td>
+        <td>{{service.price}}</td>
+        <td>{{service.description}}</td>
+        <td>{{service.time_required}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% elif session.get('user_role') == 'professional' %}
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Requested By</th>
+        <th>Assigned Professional</th>
+        <th>Requested Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for service_request in service_requests %}
+      <tr class="item">
+        <td>{{service_request.id}}</td>
+        <td>
+          {{ service_request.customer.user.name if service_request.professional
+          else 'N/A' }}
+        </td>
+        <td>
+          {{ service_request.professional.user.name if
+          service_request.professional else 'N/A' }}
+        </td>
+        <td>{{service_request.date_of_request.strftime('%Y-%m-%d') }}</td>
+        <td>{{service_request.status}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %} {% endblock %} {% block scripts %}
+<script>
+  const search_term = document.getElementById("search_term");
+  search_term.addEventListener("input", function () {
+    const searchValue = search_term.value.toLowerCase();
+    const role = "{{session.get('user_role')}}";
+
+    items = document.querySelectorAll(".item");
+    items.forEach((item) => {
+      if (item.textContent.toLowerCase().includes(searchValue)) {
+        item.style.display = "";
+      } else {
+        item.style.display = "none";
+      }
+    });
+    console.log(searchValue, role);
+  });
+</script>
+{% endblock %}

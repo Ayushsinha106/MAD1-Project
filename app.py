@@ -185,8 +185,9 @@ def update_service():
     service_name = request.form.get('service_name')
     description = request.form.get('description')
     price = request.form.get('price')
+    Time_required = request.form.get('TimeRequired')
 
-    if not service_name or not description or not price:
+    if not service_name or not description or not price or not Time_required:
         flash('All fields are required', 'danger')
         return redirect(url_for('services'))
 
@@ -194,6 +195,7 @@ def update_service():
         service.service_name = service_name
         service.description = description
         service.price = float(price)
+        service.time_required = int(Time_required)
         db.session.commit()
         flash('Service updated successfully!', 'success')
     except Exception as e:
@@ -228,9 +230,16 @@ def delete_professional(professional_id):
         try:
             User.query.filter_by(id=professional_id).delete()
 
+            ServiceRequest.query.filter_by(professional_id=professional_id).update(
+                {
+                    'professional_id': None,
+                    'status': 'requested'
+                }
+            )
+
             db.session.delete(professional)
             db.session.commit()
-            flash('Service deleted successfully!', 'success')
+            flash('Professional deleted successfully!', 'success')
         except Exception as e:
             db.session.rollback()
             flash('Error deleting service: ' + str(e), 'danger')
@@ -249,7 +258,7 @@ def delete_customer(customer_id):
 
             db.session.delete(customer)
             db.session.commit()
-            flash('Service deleted successfully!', 'success')
+            flash('Customer deleted successfully!', 'success')
         except Exception as e:
             db.session.rollback()
             flash('Error deleting service: ' + str(e), 'danger')
@@ -320,8 +329,6 @@ def edit_service_request(request_id):
 
     return redirect(url_for('customer_dashboard'))
 
-
-
 @app.route('/book-service/<int:package_id>', methods=['POST'])
 def book_service(package_id):
     # Get the logged-in user's ID from the session
@@ -373,8 +380,6 @@ def book_service(package_id):
     return redirect(url_for('customer_dashboard'))
     # return render_template('customer_dashboard.html', services=services, user=user,customer=customer,packages=packages,service_requests=service_requests)
 
-
-
 @app.route('/professional_dashboard')
 def professional_dashboard():
     # Logic for the professional dashboard
@@ -420,7 +425,6 @@ def accept_service(service_id):
         flash('Service not found.', 'danger')
     return redirect(url_for('professional_dashboard'))
 
-
 @app.route('/reject_service/<int:service_id>')
 def reject_service(service_id):
     print(service_id, 'service_id')
@@ -438,6 +442,42 @@ def reject_service(service_id):
 
     return redirect(url_for('professional_dashboard'))
 
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    customers = Customer.query.all()
+    professionals = Professional.query.all()
+    services = Service.query.all()
+    service_requests = ServiceRequest.query.all()
+    return render_template('search.html', customers=customers, professionals=professionals, services=services, service_requests=service_requests)
+
+@app.route('/summary', methods=['GET', 'POST'])
+def summary():
+    if request.method == 'POST':
+        search_term = request.form.get('search_term')
+
+        if session.get("role") == "admin":
+            # Admin search logic (e.g., by serviceRequest, customer, professional)
+            service_requests = ServiceRequest.query.filter(ServiceRequest.name.contains(search_term)).all()
+            customers = Customer.query.filter(Customer.name.contains(search_term)).all()
+            professionals = Professional.query.filter(Professional.name.contains(search_term)).all()
+            return render_template('search.html', role='admin', service_requests=service_requests, customers=customers, professionals=professionals)
+        
+        elif session.get("role") == "customer":
+            # Customer search logic (e.g., by service)
+            services = Service.query.filter(Service.name.contains(search_term)).all()
+            return render_template('search.html', role='customer', services=services)
+        
+        elif session.get("role") == "professional":
+            # Professional search logic (e.g., by date, pincode)
+            service_requests = ServiceRequest.query.filter(
+                (ServiceRequest.date.contains(search_term)) | 
+                (ServiceRequest.pincode.contains(search_term))
+            ).all()
+            return render_template('search.html', role='professional', service_requests=service_requests)
+
+    return render_template('search.html', role=session.get("role"))
+
+
 @app.route('/profile')
 def profile():
     # Implement profile viewing/editing logic here
@@ -445,4 +485,4 @@ def profile():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)

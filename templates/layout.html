@@ -21,6 +21,29 @@
   </head>
   <body data-bs-theme="dark">
     <div class="container mt-4">
+      <!-- Navbar for  Dashboard -->
+      {% if request.endpoint not in ['login', 'register'] %}
+      <div class="text-center my-4">
+        <h2 class="text-capitalize">
+          {{ session.get('user_role') }} Dashboard
+        </h2>
+      </div>
+      <div class="d-flex justify-content-center mb-4">
+        <div class="d-flex flex-row gap-3">
+          <a href="#" class="btn btn-outline-light">Home</a>
+          <a href="{{ url_for('search') }}" class="btn btn-outline-light"
+            >Search</a
+          >
+          <a href="{{ url_for('summary') }}" class="btn btn-outline-light"
+            >Summary</a
+          >
+          <a href="{{ url_for('logout') }}" class="btn btn-outline-light"
+            >LogOut</a
+          >
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Place the flash messages block here -->
       {% with messages = get_flashed_messages(with_categories=True) %} {% if
       messages %}
