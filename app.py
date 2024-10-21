@@ -450,32 +450,41 @@ def search():
     service_requests = ServiceRequest.query.all()
     return render_template('search.html', customers=customers, professionals=professionals, services=services, service_requests=service_requests)
 
-@app.route('/summary', methods=['GET', 'POST'])
+@app.route('/summary')
 def summary():
-    if request.method == 'POST':
-        search_term = request.form.get('search_term')
+    if 'user_role' not in session:
+        return redirect(url_for('login'))
+    
+    # Example data - replace with actual queries
+    ratings_data = [10, 15, 20, 30, 25]  # Example: counts of each rating from 1 to 5 stars
+    service_request_data = {'requested': 100, 'accepted': 80, 'closed': 50}  # Example counts
+    professional_request_data = [30, 50, 20]  # Example counts: received, accepted, rejected
+    customer_request_data = [5, 10, 2]  # Example counts: requested, assigned, closed
+    print(session['user_role'], 'session[user_role]',session['user_id'])
+    if session['user_role'] == 'professional':
+        professional = Professional.query.get(session['user_id'])
+        ratings = ServiceRequest.query.filter_by(professional_id=professional.id).filter(ServiceRequest.rating != None).all()
+        remarks = ServiceRequest.query.filter_by(professional_id=professional.id).filter(ServiceRequest.remarks != None).all()
+        service_request_accepted = ServiceRequest.query.filter_by(professional_id=session['user_id']).count()
+        service_request_requested = (db.session.query(ServiceRequest)
+        .join(Service)
+        .filter(Service.service_name == professional.service_name)
+        .filter(ServiceRequest.status == 'requested')
+        .count())
+        service_request_rejected = ServiceRequest.query.filter(ServiceRequest.rejected_by.contains([professional.id])).count()
 
-        if session.get("role") == "admin":
-            # Admin search logic (e.g., by serviceRequest, customer, professional)
-            service_requests = ServiceRequest.query.filter(ServiceRequest.name.contains(search_term)).all()
-            customers = Customer.query.filter(Customer.name.contains(search_term)).all()
-            professionals = Professional.query.filter(Professional.name.contains(search_term)).all()
-            return render_template('search.html', role='admin', service_requests=service_requests, customers=customers, professionals=professionals)
-        
-        elif session.get("role") == "customer":
-            # Customer search logic (e.g., by service)
-            services = Service.query.filter(Service.name.contains(search_term)).all()
-            return render_template('search.html', role='customer', services=services)
-        
-        elif session.get("role") == "professional":
-            # Professional search logic (e.g., by date, pincode)
-            service_requests = ServiceRequest.query.filter(
-                (ServiceRequest.date.contains(search_term)) | 
-                (ServiceRequest.pincode.contains(search_term))
-            ).all()
-            return render_template('search.html', role='professional', service_requests=service_requests)
-
-    return render_template('search.html', role=session.get("role"))
+        ratings_list = [request.rating for request in ratings]
+        remarks_list = [request.remarks for request in remarks]
+        professional_request_data = [service_request_requested, service_request_accepted, service_request_rejected]
+        print(ratings, 'ratings')
+    return render_template(
+        'summary.html', 
+        ratings=ratings_list,
+        remarks=remarks_list,
+        service_request_data=service_request_data,
+        professional_request_data=professional_request_data,
+        customer_request_data=customer_request_data
+    )
 
 
 @app.route('/profile')

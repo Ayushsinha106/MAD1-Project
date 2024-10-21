@@ -1,0 +1,83 @@
+{% extends "layout.html" %} {% block title %}Summary - Household Services{%
+endblock %} {% block content %}
+<div class="container mt-4">
+  <h2>Summary</h2>
+
+  {% if session["user_role"] == "admin" %}
+  <div>
+    <h4>Overall Customer Ratings</h4>
+    <canvas id="ratingsChart"></canvas>
+  </div>
+  <div>
+    <h4>Service Requests Overview</h4>
+    <canvas id="serviceRequestChart"></canvas>
+  </div>
+  {% elif session["user_role"] == "professional" %}
+  <div>
+    <h4>Your Reviews & Ratings</h4>
+    <canvas id="reviewsChart"></canvas>
+  </div>
+  <div>
+    <h4>Service Request Summary</h4>
+    <canvas id="professionalRequestChart"></canvas>
+  </div>
+  {% elif session["user_role"] == "customer" %}
+  <div>
+    <h4>Your Service Requests</h4>
+    <canvas id="customerRequestChart"></canvas>
+  </div>
+  {% endif %}
+</div>
+{% endblock %} {% block scripts %}
+<script type="module">
+  document.addEventListener("DOMContentLoaded", function () {
+    const user_role = "{{ session['user_role'] }}";
+    //For Admin
+
+    //For Professional
+    if (user_role == "professional") {
+      const remarks = "{{ remarks }}";
+      const ratings = "{{ ratings }}";
+      const professionalRequestData = "{{ professional_request_data }}";
+      const data = {
+        labels: ["Received", "Accepted", "Rejected"],
+        datasets: [
+          {
+            label: "Service Requests",
+            data: JSON.parse(professionalRequestData),
+            backgroundColor: [
+              "rgba(255, 99, 132, 0.2)",
+              "rgba(255, 159, 64, 0.2)",
+              "rgba(255, 205, 86, 0.2)",
+            ],
+            borderColor: [
+              "rgb(255, 99, 132)",
+              "rgb(255, 159, 64)",
+              "rgb(255, 205, 86)",
+            ],
+            borderWidth: 0.5,
+          },
+        ],
+      };
+      const professionalCtx = document.getElementById(
+        "professionalRequestChart"
+      );
+      new Chart(professionalCtx, {
+        type: "bar",
+        data: data,
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+      console.log(remarks);
+      console.log(ratings);
+    }
+
+    //For Customer
+  });
+</script>
+{% endblock %}
