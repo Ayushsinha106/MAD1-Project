@@ -171,14 +171,36 @@ def verify_professional(professional_id):
     flash('Professional verified successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
 
-@app.route('/block_professional/<int:professional_id>')
-def block_professional(professional_id):
-    professional = Professional.query.get(professional_id)
-    user = User.query.get(professional_id)
-    professional.verified = False
-    user.is_blocked = True
-    db.session.commit()
-    flash('Professional Blocked successfully!', 'warning')
+@app.route('/block/<int:id>')
+def block(id):
+    user = User.query.get(id)
+    if user.role == 'professional':
+        professional = Professional.query.get(id)
+        professional.verified = False
+        user.is_blocked = True
+        db.session.commit()
+        flash('Professional Blocked successfully!', 'warning')
+    if user.role == 'customer':
+        customer = Customer.query.get(id)
+        user.is_blocked = True
+        db.session.commit()
+        flash('Customer Blocked successfully!', 'warning')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/unblock/<int:id>')
+def unblock(id):
+    user = User.query.get(id)
+    if user.role == 'professional':
+        professional = Professional.query.get(id)
+        professional.verified = False
+        user.is_blocked = False
+        db.session.commit()
+        flash('Professional UnBlocked successfully!', 'success')
+    if user.role == 'customer':
+        customer = Customer.query.get(id)
+        user.is_blocked = False
+        db.session.commit()
+        flash('Customer UnBlocked successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/uploads/<filename>')
