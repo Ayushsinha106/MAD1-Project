@@ -1,12 +1,18 @@
-from flask import Flask, render_template,request, redirect,flash,url_for, session
+from flask import Flask, render_template,request, redirect,flash,url_for, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from models import db,User, Service, ServiceRequest, Review, Customer,Customer, Professional
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import uuid, datetime
 from sqlalchemy.orm import joinedload
+import os
 
 app = Flask(__name__)
 
+UPLOAD_FOLDER = 'uploads/'
+ALLOWED_EXTENSIONS = {'pdf'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///db.sqlite3"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = "1431983a28650982eb94507830943ee323bc97c0fb27f865c18cae6229e00e867a5981c0b970ac7b750a26892cf02f7f204d89a01b5cfcf4434ee7a420e7b7f5"
@@ -16,14 +22,16 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
  
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
-
 
 @app.route("/login")
 def login():
@@ -85,6 +93,8 @@ def register_post():
         flash('Passwords do not match','danger')
         return redirect(url_for("register"))
     
+
+    
     user = User.query.filter_by(username=username).first()
 
     if user:
@@ -103,7 +113,22 @@ def register_post():
         if not service_name:
             flash('Please select a service','danger')
             return redirect(url_for("register"))
-        new_professional = Professional(id=id, service_name=service_name,address=address, pincode=pincode, experience=experience,description=description,contact=contact)
+        if 'document' not in request.files:
+            flash('No file part','danger')
+            return redirect(url_for("register"))
+    
+        file = request.files['document']
+
+        if file.filename == '':
+            flash('No selected file','danger')
+            return redirect(url_for("register"))
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            print('file uploaded')
+        
+        new_professional = Professional(id=id, service_name=service_name,address=address, pincode=pincode, experience=experience,description=description,contact=contact,document=filename)
         new_user = User(id=id, username=username, passhash=password_hash, name=name, role=role)
 
         try:
@@ -136,6 +161,29 @@ def logout():
     session.clear()
     flash('You have been logged out successfully.', 'success')
     return redirect(url_for('login'))
+
+@app.route('/verify_professional/<int:professional_id>')
+def verify_professional(professional_id):
+    professional = Professional.query.get(professional_id)
+    
+    professional.verified = True
+    db.session.commit()
+    flash('Professional verified successfully!', 'success')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/block_professional/<int:professional_id>')
+def block_professional(professional_id):
+    professional = Professional.query.get(professional_id)
+    user = User.query.get(professional_id)
+    professional.verified = False
+    user.is_blocked = True
+    db.session.commit()
+    flash('Professional Blocked successfully!', 'warning')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 @app.route('/admin/dashboard')
@@ -456,15 +504,15 @@ def summary():
         return redirect(url_for('login'))
     
     # Example data - replace with actual queries
-    ratings_data = [10, 15, 20, 30, 25]  # Example: counts of each rating from 1 to 5 stars
+    ratings_list = []
+    remarks_list = []
     service_request_data = {'requested': 100, 'accepted': 80, 'closed': 50}  # Example counts
     professional_request_data = [30, 50, 20]  # Example counts: received, accepted, rejected
     customer_request_data = [5, 10, 2]  # Example counts: requested, assigned, closed
-    print(session['user_role'], 'session[user_role]',session['user_id'])
     if session['user_role'] == 'professional':
         professional = Professional.query.get(session['user_id'])
         ratings = ServiceRequest.query.filter_by(professional_id=professional.id).filter(ServiceRequest.rating != None).all()
-        remarks = ServiceRequest.query.filter_by(professional_id=professional.id).filter(ServiceRequest.remarks != None).all()
+        remarks = ServiceRequest.query.filter_by(professional_id=professional.id).all()
         service_request_accepted = ServiceRequest.query.filter_by(professional_id=session['user_id']).count()
         service_request_requested = (db.session.query(ServiceRequest)
         .join(Service)
@@ -477,6 +525,27 @@ def summary():
         remarks_list = [request.remarks for request in remarks]
         professional_request_data = [service_request_requested, service_request_accepted, service_request_rejected]
         print(ratings, 'ratings')
+    
+    # For customer
+    if session['user_role'] == 'customer':
+        customer = Customer.query.get(session['user_id'])
+        service_request_requested = ServiceRequest.query.filter_by(customer_id=session['user_id']).count()
+        service_request_accepted = ServiceRequest.query.filter_by(customer_id=session['user_id'], status='accepted').count()
+        service_request_closed = ServiceRequest.query.filter_by(customer_id=session['user_id'], status='closed').count()
+
+        customer_request_data = [service_request_requested, service_request_accepted, service_request_closed]
+    
+    # For Admin
+    if session['user_role'] == 'admin':
+        service_request_requested = ServiceRequest.query.filter_by(status='requested').count()
+        service_request_accepted = ServiceRequest.query.filter_by(status='accepted').count()
+        service_request_closed = ServiceRequest.query.filter_by(status='closed').count()
+        service_request_rejected = ServiceRequest.query.filter(ServiceRequest.rejected_by != []).count()
+
+        ratings = ServiceRequest.query.filter(ServiceRequest.rating != None).all()
+        ratings_list = [request.rating for request in ratings]
+        service_request_data = [service_request_requested, service_request_accepted, service_request_rejected]
+    
     return render_template(
         'summary.html', 
         ratings=ratings_list,

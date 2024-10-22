@@ -12,6 +12,7 @@ class User(db.Model):
     passhash = db.Column(db.String(80), nullable=False)
     name = db.Column(db.String(80), nullable=False)
     role = db.Column(db.String(20), nullable=False)
+    is_blocked = db.Column(db.Boolean, default=False, nullable=False)
 
     # Define relationships with Customer and Professional
     professional = db.relationship('Professional', backref='user', lazy=True)
@@ -40,6 +41,9 @@ class Professional(db.Model):
     rating = db.Column(db.Float, nullable=True)
     address = db.Column(db.Text, nullable=False)
     pincode = db.Column(db.String(6), nullable=False)
+    available = db.Column(db.Boolean, default=True, nullable=False)
+    document = db.Column(db.String(200))
+    verified = db.Column(db.Boolean, default=False, nullable=False)
 
     # Define relationship with ServiceRequest
     service_requests = db.relationship('ServiceRequest', back_populates='professional', lazy=True)
