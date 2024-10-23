@@ -2,6 +2,11 @@
 block content %}
 <div class="container mt-4">
   <!-- Navbar for Customer Dashboard -->
+  {% if customer.user.is_blocked %}
+  <div class="alert alert-danger" role="alert">
+    Your account is blocked. Please contact the admin.
+  </div>
+  {% else %}
   <span class="navbar-text position-fixed top-0 end-0 m-3">
     <a href="">Profile</a>
   </span>
@@ -191,6 +196,7 @@ block content %}
       </div>
     </div>
   </div>
+  {% endif %}
 </div>
 {% endblock %} {% block scripts %}
 <script>

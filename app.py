@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import uuid, datetime
 from sqlalchemy.orm import joinedload
+from sqlalchemy import not_
 import os
 
 app = Flask(__name__)
@@ -215,8 +216,8 @@ def admin_dashboard():
         professionals = Professional.query.all()
         customers = Customer.query.all()
         service_requests = ServiceRequest.query.all()
-        print(services,professionals,customers,service_requests, 'services,professionals,customers,service_requests')
-        return render_template('admin_dashboard.html',customers=customers,professionals=professionals,services=services,service_requests=service_requests)  # Create this template
+        user = {'is_blocked': False}
+        return render_template('admin_dashboard.html',customers=customers,professionals=professionals,services=services,service_requests=service_requests,user=user)  # Create this template
     else:
         flash('Please log in first', 'danger')
         return redirect(url_for('login'))
@@ -450,6 +451,7 @@ def book_service(package_id):
     return redirect(url_for('customer_dashboard'))
     # return render_template('customer_dashboard.html', services=services, user=user,customer=customer,packages=packages,service_requests=service_requests)
 
+
 @app.route('/professional_dashboard')
 def professional_dashboard():
     # Logic for the professional dashboard
@@ -463,7 +465,6 @@ def professional_dashboard():
     .join(Service)
     .filter(Service.service_name == professional.service_name)
     .filter(ServiceRequest.status == 'requested')
-    .filter(ServiceRequest.rejected_by == [])
     .all()
 )
     closed_services = (
@@ -472,6 +473,7 @@ def professional_dashboard():
     .filter(Service.service_name == professional.service_name)
     .filter(ServiceRequest.status == 'closed')
     .filter(ServiceRequest.professional_id==user_id)
+    .filter(not_(ServiceRequest.rejected_by.contains([professional.id])))
     .all()
 )
     print(today_services, 'today_services')
@@ -515,17 +517,25 @@ def reject_service(service_id):
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
+    if session['user_role'] == 'admin':
+        user = {'is_blocked': False}
+    else:
+        user = User.query.get(session['user_id'])
     customers = Customer.query.all()
     professionals = Professional.query.all()
     services = Service.query.all()
     service_requests = ServiceRequest.query.all()
-    return render_template('search.html', customers=customers, professionals=professionals, services=services, service_requests=service_requests)
+    return render_template('search.html', user=user, customers=customers, professionals=professionals, services=services, service_requests=service_requests)
 
 @app.route('/summary')
 def summary():
     if 'user_role' not in session:
         return redirect(url_for('login'))
     
+    if session['user_role'] == 'admin':
+        user = {'is_blocked': False}
+    else:
+        user = User.query.get(session['user_id'])
     # Example data - replace with actual queries
     ratings_list = []
     remarks_list = []
@@ -570,7 +580,8 @@ def summary():
         service_request_data = [service_request_requested, service_request_accepted, service_request_rejected]
     
     return render_template(
-        'summary.html', 
+        'summary.html',
+        user=user, 
         ratings=ratings_list,
         remarks=remarks_list,
         service_request_data=service_request_data,

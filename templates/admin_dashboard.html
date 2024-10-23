@@ -115,6 +115,7 @@ Services{% endblock %} {% block content %}
       <thead>
         <tr>
           <th>ID</th>
+          <th>Username</th>
           <th>Name</th>
           <th>Experience</th>
           <th>Service Name</th>
@@ -126,6 +127,7 @@ Services{% endblock %} {% block content %}
         {% for professional in professionals %}
         <tr>
           <td>{{professional.id}}</td>
+          <td>{{professional.user.username}}</td>
           <td>{{professional.user.name}}</td>
           <td>{{professional.experience}}</td>
           <td>{{professional.service_name}}</td>
@@ -155,7 +157,7 @@ Services{% endblock %} {% block content %}
             <!-- If the professional is verified, show the yellow button -->
             <button
               type="button"
-              class="btn btn-warning btn-sm"
+              class="btn btn-success btn-sm"
               onclick="openProfEditModal('{{ professional.id }}','{{ professional.user.name }}', '{{ professional.user.username }}', '{{ professional.service_name }}', '{{ professional.description }}', '{{ professional.document }}')"
             >
               Verified
@@ -183,6 +185,7 @@ Services{% endblock %} {% block content %}
       <thead>
         <tr>
           <th>ID</th>
+          <th>Username</th>
           <th>Name</th>
           <th>Address</th>
           <th>Contact</th>
@@ -194,6 +197,7 @@ Services{% endblock %} {% block content %}
         {% for customer in customers %}
         <tr>
           <td>{{customer.id}}</td>
+          <td>{{customer.user.username}}</td>
           <td>{{customer.user.name}}</td>
           <td>{{customer.address}}</td>
           <td>{{customer.contact}}</td>
@@ -230,6 +234,7 @@ Services{% endblock %} {% block content %}
       <thead>
         <tr>
           <th>ID</th>
+          <th>Service Name</th>
           <th>Requested By</th>
           <th>Assigned Professional</th>
           <th>Requested Date</th>
@@ -241,6 +246,7 @@ Services{% endblock %} {% block content %}
         {% for service_request in service_requests %}
         <tr>
           <td>{{service_request.id}}</td>
+          <td>{{service_request.service.service_name}}</td>
           <td>
             {{ service_request.customer.user.name if
             service_request.professional else 'N/A' }}
@@ -442,14 +448,11 @@ Services{% endblock %} {% block content %}
     document.getElementById("editProfessionalDescription").value = description;
     let url = document.getElementById("docLink").getAttribute("data-url");
     document.getElementById("viewDocument").href = url;
-    let verifyUrl = document
-      .getElementById("docLink")
-      .getAttribute("data-verify-url");
+    let verifyUrl = `/verify_professional/${id}`;
     document.getElementById("verifyProfBtn").href = verifyUrl;
-    let blockUrl = document
-      .getElementById("docLink")
-      .getAttribute("data-block-url");
+    let blockUrl = `/block/${id}`;
     document.getElementById("blockProfBtn").href = blockUrl;
+    console.log(verifyUrl, blockUrl);
     $("#editProfessionalModal").modal("show");
   }
 </script>

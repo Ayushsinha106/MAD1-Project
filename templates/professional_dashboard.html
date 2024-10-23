@@ -2,10 +2,19 @@
 %} {% block content %}
 
 <div class="container mt-5">
+  {% if professional.user.is_blocked %}
+  <div class="alert alert-danger" role="alert">
+    Your account is blocked. Please contact the admin.
+  </div>
+  {% elif professional.user.verified %}
+  <div class="alert alert-warning" role="alert">
+    Your account is not verified yet. Please wait for the admin to verify your
+    account.
+  </div>
+  {% else %}
   <span class="navbar-text position-fixed top-0 end-0 m-3">
     <a href="">Profile</a>
   </span>
-
   <h2 class="mt-4">Accepted Services</h2>
   <div class="table-responsive">
     <table class="table table-bordered mt-3">
@@ -94,5 +103,7 @@
       </tbody>
     </table>
   </div>
+  {% endif %}
 </div>
+
 {% endblock %}
