@@ -457,7 +457,7 @@ def professional_dashboard():
     professional = Professional.query.get(user_id)
     user = User.query.get(user_id)
     service = Service.query.all()
-    accepted_services = ServiceRequest.query.filter_by(professional_id=user_id).all()
+    accepted_services = ServiceRequest.query.filter_by(professional_id=user_id).filter_by(status='accepted').all()
     today_services = (
     db.session.query(ServiceRequest)
     .join(Service)
@@ -471,6 +471,7 @@ def professional_dashboard():
     .join(Service)
     .filter(Service.service_name == professional.service_name)
     .filter(ServiceRequest.status == 'closed')
+    .filter(ServiceRequest.professional_id==user_id)
     .all()
 )
     print(today_services, 'today_services')

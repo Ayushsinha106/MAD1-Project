@@ -156,13 +156,7 @@ Services{% endblock %} {% block content %}
             <button
               type="button"
               class="btn btn-warning btn-sm"
-              onclick="openProfEditModal(
-        '{{ professional.id }}', 
-        '{{ professional.user.name }}', 
-        '{{ professional.user.username }}', 
-        '{{ professional.service_name }}', 
-        '{{ professional.description }}', 
-        '{{ professional.document }}')"
+              onclick="openProfEditModal('{{ professional.id }}','{{ professional.user.name }}', '{{ professional.user.username }}', '{{ professional.service_name }}', '{{ professional.description }}', '{{ professional.document }}')"
             >
               Verified
             </button>
@@ -171,13 +165,7 @@ Services{% endblock %} {% block content %}
             <button
               type="button"
               class="btn btn-primary btn-sm"
-              onclick="openProfEditModal(
-        '{{ professional.id }}', 
-        '{{ professional.user.name }}', 
-        '{{ professional.user.username }}', 
-        '{{ professional.service_name }}', 
-        '{{ professional.description }}', 
-        '{{ professional.document }}')"
+              onclick="openProfEditModal('{{ professional.id }}', '{{ professional.user.name }}', '{{ professional.user.username }}', '{{ professional.service_name }}', '{{ professional.description }}', '{{ professional.document }}')"
             >
               View
             </button>
@@ -442,15 +430,16 @@ Services{% endblock %} {% block content %}
     document.getElementById("editTimeRequired").value = data2[1];
     $("#editServiceModal").modal("show");
   }
-  function openProfEditModal(e) {
-    let data = e.split(", ").map((part) => part.trim());
-    console.log(data);
+  function openProfEditModal(id, name, username, service, description, doc) {
+    // console.log(e, "e");
+    // let data = e.split(", ").map((part) => part.trim());
+    // console.log(data);
     document.getElementById("editProfessionalModalLabel").innerHTML =
-      "Professional #" + data[0] + " Details";
-    document.getElementById("editProfessionalName").value = data[1];
-    document.getElementById("editProfessionalUsername").value = data[2];
-    document.getElementById("editProfessionalService").value = data[3];
-    document.getElementById("editProfessionalDescription").value = data[4];
+      "Professional #" + id + " Details";
+    document.getElementById("editProfessionalName").value = name;
+    document.getElementById("editProfessionalUsername").value = username;
+    document.getElementById("editProfessionalService").value = service;
+    document.getElementById("editProfessionalDescription").value = description;
     let url = document.getElementById("docLink").getAttribute("data-url");
     document.getElementById("viewDocument").href = url;
     let verifyUrl = document

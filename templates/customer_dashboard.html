@@ -68,6 +68,12 @@ block content %}
         </thead>
         <tbody>
           {% for service_request in service_requests %}
+          <a
+            href="#"
+            data-url="{{ url_for('edit_service_request', request_id=service_request.id) }}"
+            id="editServiceRequestUrl"
+            style="display: none"
+          ></a>
           <tr>
             <td>{{ service_request.id }}</td>
             <td>{{ service_request.service.service_name }}</td>
@@ -90,104 +96,10 @@ block content %}
                 class="btn btn-info"
                 data-toggle="modal"
                 data-target="#viewModal"
-                onclick="showModal('{{ service_request.id }}')"
+                onclick="showModal('{{ service_request.id }}', '{{ service_request.date_of_request }}', '{{ service_request.status }}', '{{ service_request.remarks }}', '{{ service_request.rating }}')"
               >
                 View
               </button>
-              <!-- Modal here -->
-              <div
-                class="modal fade"
-                id="viewModal"
-                tabindex="-1"
-                role="dialog"
-                aria-labelledby="viewModalLabel"
-                aria-hidden="true"
-              >
-                <div class="modal-dialog" role="document">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="viewModalLabel">
-                        Edit Service Request
-                      </h5>
-                      <button
-                        type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="Close"
-                        onclick="closeModal('viewModal')"
-                      >
-                        <span aria-hidden="true">&times;</span>
-                      </button>
-                    </div>
-                    <form
-                      method="POST"
-                      action="{{ url_for('edit_service_request', request_id=service_request.id) }}"
-                    >
-                      <div class="modal-body">
-                        <div class="form-group">
-                          <label for="date_of_request">Date of Request</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="date_of_request"
-                            id="date_of_request"
-                            value="{{ service_request.date_of_request }}"
-                            required
-                            disabled
-                          />
-                        </div>
-                        <div class="form-group">
-                          <label for="status">Status</label>
-                          <select
-                            class="form-control"
-                            name="status"
-                            id="status"
-                          >
-                            <option value="requested">Requested</option>
-                            <option value="accepted">Accepted</option>
-                            <option value="closed">Closed</option>
-                          </select>
-                        </div>
-                        <div class="form-group">
-                          <label for="remarks">Remarks</label>
-                          <textarea
-                            class="form-control"
-                            name="remarks"
-                            id="remarks"
-                          >
-{{ service_request.remarks }}</textarea
-                          >
-                        </div>
-                        <div class="form-group">
-                          <label for="rating">Rating (0-5)</label>
-                          <input
-                            type="number"
-                            class="form-control"
-                            name="rating"
-                            id="rating"
-                            min="0"
-                            max="5"
-                            value="{{ service_request.rating or 0 }}"
-                          />
-                        </div>
-                      </div>
-                      <div class="modal-footer">
-                        <button
-                          type="button"
-                          class="btn btn-secondary"
-                          data-dismiss="modal"
-                          onclick="closeModal('viewModal')"
-                        >
-                          Close
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                          Save Changes
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
 
               {% endif %}
             </td>
@@ -196,16 +108,111 @@ block content %}
         </tbody>
       </table>
     </div>
+    <!-- Modal here -->
+    <div
+      class="modal fade"
+      id="viewModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="viewModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewModalLabel">
+              Edit Service Request
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+              onclick="closeModal('viewModal')"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form id="viewModalForm" method="POST">
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="date_of_request">Date of Request</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="date_of_request"
+                  id="date_of_request"
+                  required
+                  disabled
+                />
+              </div>
+              <div class="form-group">
+                <label for="status">Status</label>
+                <select class="form-control" name="status" id="status">
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="remarks">Remarks</label>
+                <textarea
+                  class="form-control"
+                  name="remarks"
+                  id="remarks"
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="rating">Rating (0-5)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  name="rating"
+                  id="rating"
+                  min="0"
+                  max="5"
+                  value="0"
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-dismiss="modal"
+                onclick="closeModal('viewModal')"
+              >
+                Close
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %} {% block scripts %}
 <script>
-  function showModal(serviceId) {
-    console.log("Opening modal for service ID:", serviceId);
+  function showModal(serviceId, dateOfRequest, status) {
+    console.log(serviceId, dateOfRequest, status);
 
     // Open the modal using jQuery (if jQuery is loaded)
-    $("#viewModal").modal("show");
+    const dateInput = document.getElementById("date_of_request");
+    const statusInput = document.getElementById("status");
+    const remarksInput = document.getElementById("remarks");
+    const ratingInput = document.getElementById("rating");
 
+    dateInput.value = dateOfRequest;
+    statusInput.value = status;
+    remarksInput.value = "";
+    ratingInput.value = 0;
+
+    const url = `/edit_service_request/${serviceId}`;
+    const form = document.getElementById("viewModalForm");
+    form.action = url;
+
+    $("#viewModal").modal("show");
     // Or using vanilla JavaScript if Bootstrap is loaded without jQuery
     var modalElement = document.getElementById("viewModal");
     var bootstrapModal = new bootstrap.Modal(modalElement);
