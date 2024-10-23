@@ -40,6 +40,7 @@ endblock %} {% block content %}
         (rating) => ratingList.filter((r) => r === rating).length
       );
       const ratingsCtx = document.getElementById("ratingsChart");
+      console.log(ratings, ratingCounts);
       const ratingChart = new Chart(ratingsCtx, {
         type: "bar", // Use 'line' for a line chart
         data: {
@@ -90,7 +91,7 @@ endblock %} {% block content %}
       new Chart(serviceRequestCtx, {
         type: "doughnut",
         data: {
-          labels: ["Requested", "Accepted", "Rejected"],
+          labels: ["Requested", "Accepted", "Closed"],
           datasets: [
             {
               label: "Service Requests",

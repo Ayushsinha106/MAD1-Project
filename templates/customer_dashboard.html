@@ -153,9 +153,15 @@ block content %}
               </div>
               <div class="form-group">
                 <label for="status">Status</label>
-                <select class="form-control" name="status" id="status">
-                  <option value="closed">Closed</option>
-                </select>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="status"
+                  id="status"
+                  value="closed"
+                  required
+                  disabled
+                />
               </div>
               <div class="form-group">
                 <label for="remarks">Remarks</label>

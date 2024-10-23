@@ -64,7 +64,8 @@
             {% set rejected = false %} {% for reject in
             service_request.rejected_by %} {% if reject == user.id %}
             <span class="badge badge-danger">Rejected</span>
-            {% set rejected = true %} {% endif %} {% endfor %} {% if rejected %}
+            {% set rejected = true %} {% endif %} {% endfor %} {% if not
+            rejected %}
             <a
               href="{{ url_for('accept_service', service_id=service_request.id) }}"
               class="btn btn-success"

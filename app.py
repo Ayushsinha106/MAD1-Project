@@ -378,7 +378,7 @@ def select_service():
 def edit_service_request(request_id):
     service_request = ServiceRequest.query.get_or_404(request_id)
     print(service_request.professional_id, 'service_request.professional_id')
-    service_request.status = request.form.get('status')
+    service_request.status = 'closed'
     if service_request.status == 'closed' and service_request.professional_id == None:
         service_request.rating = None
         service_request.remarks = None
@@ -392,6 +392,7 @@ def edit_service_request(request_id):
     # If the status is 'accepted' and the customer is closing the request
     print(service_request.professional_id, 'service_request.professional_id')
     try:
+        service_request.date_of_completion = datetime.datetime.utcnow()
         db.session.commit()
         flash('Service request updated successfully', 'success')
     except Exception as e:
@@ -577,7 +578,7 @@ def summary():
 
         ratings = ServiceRequest.query.filter(ServiceRequest.rating != None).all()
         ratings_list = [request.rating for request in ratings]
-        service_request_data = [service_request_requested, service_request_accepted, service_request_rejected]
+        service_request_data = [service_request_requested, service_request_accepted, service_request_closed]
     
     return render_template(
         'summary.html',
