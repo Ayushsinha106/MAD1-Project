@@ -98,12 +98,12 @@ block content %}
               {% else %}
               <button
                 type="button"
-                class="btn btn-info"
+                class="btn btn-warning btn-sm"
                 data-toggle="modal"
                 data-target="#viewModal"
                 onclick="showModal('{{ service_request.id }}', '{{ service_request.date_of_request }}', '{{ service_request.status }}', '{{ service_request.remarks }}', '{{ service_request.rating }}')"
               >
-                View
+                Close it?
               </button>
 
               {% endif %}

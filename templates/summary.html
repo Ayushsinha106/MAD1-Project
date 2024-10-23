@@ -165,8 +165,9 @@ endblock %} {% block content %}
     //For Customer
     if (user_role == "customer") {
       const customerRequestData = "{{ customer_request_data }}";
+      console.log(customerRequestData);
       const data = {
-        labels: ["Total", "Accepted", "Completed"],
+        labels: ["Total", "Accepted", "Closed"],
         datasets: [
           {
             label: "Services",
