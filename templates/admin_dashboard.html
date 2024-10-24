@@ -57,7 +57,6 @@ Services{% endblock %} {% block content %}
   <!-- The Modal -->
   <div id="addServiceModal" style="display: none">
     <div class="modal-content">
-      <span class="close" id="closeModal" style="cursor: pointer">&times;</span>
       <h3>Add New Service</h3>
       <form
         id="serviceForm"
@@ -94,9 +93,7 @@ Services{% endblock %} {% block content %}
           class="form-control"
           required
         />
-        <button type="submit" class="btn btn-secondary mb-2">
-          Add Service
-        </button>
+        <button type="submit" class="btn btn-success mb-2">Add Service</button>
         <button
           type="button"
           onclick="closeModal()"
@@ -282,6 +279,12 @@ Services{% endblock %} {% block content %}
       >
         <div class="modal-header">
           <h5 class="modal-title" id="editServiceModalLabel">Edit Service</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="editServiceId" name="service_id" />
@@ -326,7 +329,11 @@ Services{% endblock %} {% block content %}
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
             Close
           </button>
           <button type="submit" class="btn btn-success">Update Service</button>
@@ -350,6 +357,12 @@ Services{% endblock %} {% block content %}
         <h5 class="modal-title" id="editProfessionalModalLabel">
           Professional Details
         </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
       </div>
       <div class="modal-body">
         <div class="form-group">

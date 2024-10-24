@@ -130,13 +130,10 @@ block content %}
             </h5>
             <button
               type="button"
-              class="close"
-              data-dismiss="modal"
+              class="btn-close"
+              data-bs-dismiss="modal"
               aria-label="Close"
-              onclick="closeModal('viewModal')"
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
+            ></button>
           </div>
           <form id="viewModalForm" method="POST">
             <div class="modal-body">
@@ -188,7 +185,7 @@ block content %}
               <button
                 type="button"
                 class="btn btn-secondary"
-                data-dismiss="modal"
+                data-bs-dismiss="modal"
                 onclick="closeModal('viewModal')"
               >
                 Close
@@ -211,12 +208,10 @@ block content %}
 
     // Open the modal using jQuery (if jQuery is loaded)
     const dateInput = document.getElementById("date_of_request");
-    const statusInput = document.getElementById("status");
     const remarksInput = document.getElementById("remarks");
     const ratingInput = document.getElementById("rating");
 
     dateInput.value = dateOfRequest;
-    statusInput.value = status;
     remarksInput.value = "";
     ratingInput.value = 0;
 
@@ -226,14 +221,9 @@ block content %}
 
     $("#viewModal").modal("show");
     // Or using vanilla JavaScript if Bootstrap is loaded without jQuery
-    var modalElement = document.getElementById("viewModal");
-    var bootstrapModal = new bootstrap.Modal(modalElement);
-    bootstrapModal.show();
-  }
-  function closeModal(modalId) {
-    var modalElement = document.getElementById(modalId);
-    var modal = bootstrap.Modal.getInstance(modalElement);
-    modal.hide();
+    //var modalElement = document.getElementById("viewModal");
+    //var bootstrapModal = new bootstrap.Modal(modalElement);
+    //bootstrapModal.show();
   }
 </script>
 {% endblock %}
