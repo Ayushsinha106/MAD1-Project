@@ -388,6 +388,7 @@ def edit_service_request(request_id):
         professional = Professional.query.get(service_request.professional_id)
         print(professional.service_id, 'professional.service_id')
         professional.service_id = None
+        professional.available = True
         print(professional.service_id, 'professional.service_id')
     # If the status is 'accepted' and the customer is closing the request
     print(service_request.professional_id, 'service_request.professional_id')
@@ -490,8 +491,12 @@ def accept_service(service_id):
         if service_request.status == 'accepted':
             flash('This service is already accepted byt Someone', 'danger')  # Change status as needed
             return redirect(url_for('professional_dashboard'))
+        if professional.available == False:
+            flash('You have already accepted a service', 'warning')
+            return redirect(url_for('professional_dashboard'))
         service_request.professional_id = session['user_id']
         professional.service_id = service_request.service_id
+        professional.available = False
         service_request.status = 'accepted'
         db.session.commit()
         flash('Service accepted!', 'success')
