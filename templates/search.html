@@ -132,6 +132,7 @@ endblock %} {% block content %}
       <tr>
         <th>ID</th>
         <th>Requested By</th>
+        <th>Pincode</th>
         <th>Assigned Professional</th>
         <th>Requested Date</th>
         <th>Status</th>
@@ -145,6 +146,7 @@ endblock %} {% block content %}
           {{ service_request.customer.user.name if service_request.professional
           else 'N/A' }}
         </td>
+        <td>{{service_request.customer.pincode}}</td>
         <td>
           {{ service_request.professional.user.name if
           service_request.professional else 'N/A' }}

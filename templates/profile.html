@@ -8,7 +8,7 @@ endblock %} {% block content %}
     <h2>Customer Profile</h2>
     <p><strong>Name:</strong> {{ user.name }}</p>
     <p><strong>Username:</strong> {{ user.username }}</p>
-    <p><strong>Address:</strong> {{ user.customer.address }}</p>
+    <p><strong>Address:</strong> {{ customer.address }}</p>
     <p><strong>Contact:</strong> {{ customer.contact }}</p>
     <p>
       <strong>Account Status:</strong>
@@ -25,6 +25,7 @@ endblock %} {% block content %}
     <h2>Professional Profile</h2>
     <p><strong>Name:</strong> {{ user.name }}</p>
     <p><strong>Username:</strong> {{ user.username }}</p>
+    <p><strong>Address:</strong> {{ professional.address }}</p>
     <p><strong>Specialization:</strong> {{ professional.service_name }}</p>
     <p><strong>Experience:</strong> {{ professional.experience }} years</p>
     <p><strong>Description:</strong> {{professional.description }}</p>

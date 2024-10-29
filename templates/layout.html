@@ -24,7 +24,7 @@
       <!-- Navbar for  Dashboard -->
       {% if not (request.endpoint == 'professional_dashboard' and
       professional.verified == false) %} {% if request.endpoint not in ['login',
-      'register', 'summary','profile', 'search'] and not user.is_blocked%}
+      'register','profile'] and not user.is_blocked%}
       <div class="text-center my-4">
         <h2 class="text-capitalize">
           {{ session.get('user_role') }} Dashboard

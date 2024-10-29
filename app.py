@@ -518,6 +518,8 @@ def reject_service(service_id):
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
+    if 'user_role' not in session:
+        return redirect(url_for('login'))
     if session['user_role'] == 'admin':
         user = {'is_blocked': False}
     else:
