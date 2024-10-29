@@ -22,8 +22,9 @@
   <body data-bs-theme="dark">
     <div class="container mt-4">
       <!-- Navbar for  Dashboard -->
-      {% if request.endpoint not in ['login', 'register'] and not
-      user.is_blocked%}
+      {% if not (request.endpoint == 'professional_dashboard' and
+      professional.verified == false) %} {% if request.endpoint not in ['login',
+      'register', 'summary','profile', 'search'] and not user.is_blocked%}
       <div class="text-center my-4">
         <h2 class="text-capitalize">
           {{ session.get('user_role') }} Dashboard
@@ -48,7 +49,7 @@
           >
         </div>
       </div>
-      {% endif %}
+      {% endif %} {% endif %}
 
       <!-- Place the flash messages block here -->
       {% with messages = get_flashed_messages(with_categories=True) %} {% if

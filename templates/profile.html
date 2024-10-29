@@ -1,0 +1,67 @@
+{% extends "layout.html" %} {% block title %}Profile - Household Services{%
+endblock %} {% block content %}
+<div class="container mt-5">
+  <h1 class="text-center">Profile</h1>
+  <div class="profile-section card p-4">
+    {% if user.role == 'customer' %}
+    <!-- Customer Profile Section -->
+    <h2>Customer Profile</h2>
+    <p><strong>Name:</strong> {{ user.name }}</p>
+    <p><strong>Username:</strong> {{ user.username }}</p>
+    <p><strong>Address:</strong> {{ user.customer.address }}</p>
+    <p><strong>Contact:</strong> {{ customer.contact }}</p>
+    <p>
+      <strong>Account Status:</strong>
+      {% if user.is_blocked %}
+      <span class="badge badge-danger">Blocked</span>
+      {% else %}
+      <span class="badge badge-success">Active</span>
+      {% endif %}
+    </p>
+    <!-- Add other customer-specific fields here -->
+
+    {% elif user.role == 'professional' %}
+    <!-- Professional Profile Section -->
+    <h2>Professional Profile</h2>
+    <p><strong>Name:</strong> {{ user.name }}</p>
+    <p><strong>Username:</strong> {{ user.username }}</p>
+    <p><strong>Specialization:</strong> {{ professional.service_name }}</p>
+    <p><strong>Experience:</strong> {{ professional.experience }} years</p>
+    <p><strong>Description:</strong> {{professional.description }}</p>
+    <p><strong>Contact:</strong> {{ professional.contact }}</p>
+
+    <p>
+      <strong>Account Status:</strong>
+      {% if user.is_blocked %}
+      <span class="badge badge-danger">Blocked</span>
+      {% elif not professional.verified %}
+      <span class="badge badge-warning">Not Verified</span>
+      {% else %}
+      <span class="badge badge-success">Verified</span>
+      {% endif %}
+    </p>
+    <!-- Link to view uploaded document if available -->
+    {% if user.professional.document %}
+    <p>
+      <strong>Document:</strong>
+      <a
+        href="{{ url_for('uploaded_file', filename=user.professional.document) }}"
+        target="_blank"
+        >View Document</a
+      >
+    </p>
+    {% endif %}
+    <!-- Add other professional-specific fields here -->
+    {% else %}
+    <!-- Error message if user role is neither 'customer' nor 'professional' -->
+    <div>
+      <a href="{{ url_for('login') }}"
+        ><button type="submit" class="btn btn-primary btn-sm">Login</button></a
+      >
+      to view Profile
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

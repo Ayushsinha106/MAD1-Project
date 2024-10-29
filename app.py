@@ -594,7 +594,14 @@ def summary():
 @app.route('/profile')
 def profile():
     # Implement profile viewing/editing logic here
-    return render_template('profile.html')
+    user, professional, customer = None, None, None
+    if 'user_id' not in session:
+        user = {"role":None}
+    else:
+        user = User.query.get(session['user_id'])
+        professional = Professional.query.get(session['user_id'])
+        customer = Customer.query.get(session['user_id'])
+    return render_template('profile.html',user=user,professional=professional,customer=customer)
 
 
 if __name__ == '__main__':

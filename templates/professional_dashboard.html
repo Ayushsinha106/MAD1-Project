@@ -6,14 +6,15 @@
   <div class="alert alert-danger" role="alert">
     Your account is blocked. Please contact the admin.
   </div>
-  {% elif professional.user.verified %}
+  {% elif not professional.verified %}
   <div class="alert alert-warning" role="alert">
     Your account is not verified yet. Please wait for the admin to verify your
     account.
   </div>
   {% else %}
+
   <span class="navbar-text position-fixed top-0 end-0 m-3">
-    <a href="">Profile</a>
+    <a href="{{url_for('profile')}}">Profile</a>
   </span>
   <h2 class="mt-4">Accepted Services</h2>
   <div class="table-responsive">
@@ -66,6 +67,7 @@
             <span class="badge badge-danger">Rejected</span>
             {% set rejected = true %} {% endif %} {% endfor %} {% if not
             rejected %}
+            <!-- Show Accept/Reject buttons only if not rejected -->
             <a
               href="{{ url_for('accept_service', service_id=service_request.id) }}"
               class="btn btn-success"
