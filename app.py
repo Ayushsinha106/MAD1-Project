@@ -281,7 +281,13 @@ def delete_service(service_id):
     print(service, 'service')
     if service:
         try:
-            ServiceRequest.query.filter_by(service_id=service_id).delete()
+            service_request = ServiceRequest.query.filter_by(service_id=service_id)
+            if service_request:
+                pid = service_request.professional_id
+                if pid:
+                    professional = Professional.query.get(pid)
+                    professional.available = True
+                service_request.delete()
 
             db.session.delete(service)
             db.session.commit()
@@ -325,7 +331,13 @@ def delete_customer(customer_id):
     if customer:
         try:
             User.query.filter_by(id=customer_id).delete()
-            ServiceRequest.query.filter_by(customer_id=customer_id).delete()
+            service_request = ServiceRequest.query.filter_by(customer_id=customer_id)
+            if service_request:
+                pid = service_request.professional_id
+                if pid:
+                    professional = Professional.query.get(pid)
+                    professional.available = True
+                service_request.delete()
 
             db.session.delete(customer)
             db.session.commit()
