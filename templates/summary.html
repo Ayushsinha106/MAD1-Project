@@ -2,8 +2,7 @@
 endblock %} {% block content %}
 <style>
   .chart-size {
-    width: 600px;
-    height: 400px;
+    height: 500px !important;
     top: 0;
   }
 </style>
@@ -13,11 +12,16 @@ endblock %} {% block content %}
   {% if session["user_role"] == "admin" %}
   <div>
     <h4>Overall Customer Ratings</h4>
-    <canvas class="chart-size" id="ratingsChart"></canvas>
+    <canvas id="ratingsChart" class="chart-size"></canvas>
   </div>
   <div>
     <h4>Service Requests Overview</h4>
-    <canvas class="chart-size" id="serviceRequestChart"></canvas>
+    <canvas
+      class="chart-size"
+      id="serviceRequestChart"
+      width="400"
+      height="100"
+    ></canvas>
   </div>
   {% elif session["user_role"] == "professional" %}
   <div>

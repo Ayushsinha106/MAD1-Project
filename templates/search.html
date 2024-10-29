@@ -1,19 +1,19 @@
 {% extends "layout.html" %} {% block title %}Search - Household Services{%
 endblock %} {% block content %}
 <h2>Search</h2>
-<div class="form-group">
-  <label for="search_term">Enter search term:</label>
+<div class="input-group">
   <input
     type="text"
     class="form-control"
-    id="search_term"
-    name="search_term"
-    placeholder="Type to search..."
+    id="Name"
+    name="Name"
+    placeholder="Type Anything..."
   />
 </div>
 
 <h3 class="my-4">Search Results:</h3>
-{% if session.get('user_role') == 'admin' %}
+{% if session.get('user_role') == 'admin' %} {% if service_requests|length > 0
+%}
 <h4>Service Requests:</h4>
 <div class="table-responsive admin">
   <table class="table">
@@ -30,10 +30,7 @@ endblock %} {% block content %}
       {% for service_request in service_requests %}
       <tr class="item">
         <td>{{service_request.id}}</td>
-        <td>
-          {{ service_request.customer.user.name if service_request.professional
-          else 'N/A' }}
-        </td>
+        <td>{{ service_request.customer.user.name}}</td>
         <td>
           {{ service_request.professional.user.name if
           service_request.professional else 'N/A' }}
@@ -45,6 +42,7 @@ endblock %} {% block content %}
     </tbody>
   </table>
 </div>
+{% endif %}
 <h4>Customers:</h4>
 <div class="table-responsive admin">
   <table class="table">
@@ -160,7 +158,9 @@ endblock %} {% block content %}
 </div>
 {% endif %} {% endblock %} {% block scripts %}
 <script>
-  const search_term = document.getElementById("search_term");
+  const search_term = document.getElementById("Name");
+  const pincode = document.getElementById("Pincode");
+  const service = document.getElementById("service");
   search_term.addEventListener("input", function () {
     const searchValue = search_term.value.toLowerCase();
     const role = "{{session.get('user_role')}}";

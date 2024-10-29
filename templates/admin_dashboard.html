@@ -12,6 +12,7 @@ Services{% endblock %} {% block content %}
           <th>Service Name</th>
           <th>Base Price</th>
           <th>Description</th>
+          <th>Time Required</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -21,8 +22,9 @@ Services{% endblock %} {% block content %}
         <tr>
           <td>{{service.id}}</td>
           <td>{{service.service_name}}</td>
-          <td>{{service.price}}</td>
+          <td>₹{{service.price}}</td>
           <td>{{service.description}}</td>
+          <td>{{service.time_required}} hrs</td>
           <td>
             <button
               class="btn btn-warning btn-sm"
@@ -54,7 +56,7 @@ Services{% endblock %} {% block content %}
     Add New Service
   </button>
 
-  <!-- The Modal -->
+  <!-- Add Service The Modal -->
   <div id="addServiceModal" style="display: none">
     <div class="modal-content">
       <h3>Add New Service</h3>
@@ -123,7 +125,12 @@ Services{% endblock %} {% block content %}
         <!-- Sample data, replace with your dynamic data from the database -->
         {% for professional in professionals %}
         <tr>
-          <td>{{professional.id}}</td>
+          <td
+            onclick="openProfProfile('{{professional.id}}','{{professional.user.username}}','{{professional.user.name}}','{{professional.service_name}}','{{professional.experience}}','{{professional.address}}','{{professional.pincode}}','{{professional.description}}','{{professional.document}}','{{professional.contact}}')"
+            style="cursor: pointer"
+          >
+            {{professional.id}}
+          </td>
           <td>{{professional.user.username}}</td>
           <td>{{professional.user.name}}</td>
           <td>{{professional.experience}}</td>
@@ -193,7 +200,12 @@ Services{% endblock %} {% block content %}
         <!-- Sample data, replace with your dynamic data from the database -->
         {% for customer in customers %}
         <tr>
-          <td>{{customer.id}}</td>
+          <td
+            onclick="openCustomerProfile('{{customer.id}}','{{customer.user.username}}','{{customer.user.name}}','{{customer.address}}','{{customer.pincode}}','{{customer.contact}}')"
+            style="cursor: pointer"
+          >
+            {{customer.id}}
+          </td>
           <td>{{customer.user.username}}</td>
           <td>{{customer.user.name}}</td>
           <td>{{customer.address}}</td>
@@ -427,6 +439,138 @@ Services{% endblock %} {% block content %}
   </div>
 </div>
 
+<!-- Professional Detail Modal -->
+<div
+  class="modal fade"
+  id="userProfileModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="userProfileModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userProfileModalLabel">User Details</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="UserName">Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="UserName"
+            name="user_name"
+            required
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <label for="UserUsername">Username</label>
+          <input
+            type="text"
+            class="form-control"
+            id="UserUsername"
+            name="user_username"
+            required
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <label for="ProfessionalDescription">Descrption</label>
+          <input
+            type="text"
+            class="form-control"
+            id="ProfessionalDescription"
+            name="professional_descrption"
+            required
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <label for="ProfessionalService">Service Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="ProfessionalService"
+            name="professional_service"
+            required
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <label for="ProfessionalExperience">Experience</label>
+          <input
+            type="text"
+            class="form-control"
+            id="ProfessionalExperience"
+            name="professional_experience"
+            required
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <label for="userContact">Contact</label>
+          <input
+            type="text"
+            class="form-control"
+            id="userContact"
+            name="user_contact"
+            required
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <label for="UserAddress">Address</label>
+          <input
+            type="text"
+            class="form-control"
+            id="UserAddress"
+            name="useraddress"
+            required
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <label for="UserPincode">Pincode</label>
+          <input
+            type="text"
+            class="form-control"
+            id="UserPincode"
+            name="userPincode"
+            required
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <a
+            target="_blank"
+            href=""
+            id="viewProfDocument"
+            class="btn btn-warning btn-sm"
+            >View Document</a
+          >
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a
+          type="button"
+          class="btn btn-secondary"
+          id="ProfProfileClose"
+          data-bs-dismiss="modal"
+          >Close</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   function closeModal() {
     document.getElementById("addServiceModal").style.display = "none";
@@ -450,9 +594,6 @@ Services{% endblock %} {% block content %}
     $("#editServiceModal").modal("show");
   }
   function openProfEditModal(id, name, username, service, description, doc) {
-    // console.log(e, "e");
-    // let data = e.split(", ").map((part) => part.trim());
-    // console.log(data);
     document.getElementById("editProfessionalModalLabel").innerHTML =
       "Professional #" + id + " Details";
     document.getElementById("editProfessionalName").value = name;
@@ -467,6 +608,57 @@ Services{% endblock %} {% block content %}
     document.getElementById("blockProfBtn").href = blockUrl;
     console.log(verifyUrl, blockUrl);
     $("#editProfessionalModal").modal("show");
+  }
+
+  // Open Professional Profile
+  function openProfProfile(
+    id,
+    username,
+    name,
+    service_name,
+    experience,
+    address,
+    pincode,
+    description,
+    doc,
+    contact
+  ) {
+    document.getElementById("editProfessionalModalLabel").innerHTML =
+      "Professional Details";
+    document.getElementById("UserName").value = name;
+    document.getElementById("UserUsername").value = username;
+    document.getElementById("ProfessionalService").value = service_name;
+    document.getElementById("ProfessionalExperience").value = experience;
+    document.getElementById("ProfessionalDescription").value = description;
+    document.getElementById("UserAddress").value = address;
+    document.getElementById("UserPincode").value = pincode;
+    document.getElementById("userContact").value = contact;
+    let url = "/uploads/" + doc;
+    document.getElementById("viewProfDocument").href = url;
+    $("#userProfileModal").modal("show");
+  }
+
+  // Open Customer Profile
+  function openCustomerProfile(id, username, name, address, pincode, contact) {
+    document.getElementById("editProfessionalModalLabel").innerHTML =
+      "Customer Details";
+    document.getElementById("UserName").value = name;
+    document.getElementById("UserUsername").value = username;
+    document.getElementById("ProfessionalService").parentElement.style.display =
+      "none";
+    document.getElementById(
+      "ProfessionalDescription"
+    ).parentElement.style.display = "none";
+    document.getElementById(
+      "ProfessionalExperience"
+    ).parentElement.style.display = "none";
+    document.getElementById("viewProfDocument").parentElement.style.display =
+      "none";
+    document.getElementById("UserAddress").value = address;
+    document.getElementById("UserPincode").value = pincode;
+    document.getElementById("userContact").value = contact;
+    $("#userProfileModal").modal("show");
+    console.log(id, name, username, service_name, description, pincode);
   }
 </script>
 {% endblock %}

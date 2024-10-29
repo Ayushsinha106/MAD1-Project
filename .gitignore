@@ -2,3 +2,5 @@ venv/
 .env
 drop_db.py
 uploads/
+static/
+instance/

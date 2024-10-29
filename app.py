@@ -22,6 +22,11 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+    user = User.query.filter_by(username='admin').first()
+    if not user:
+        admin = User(username='admin', passhash=generate_password_hash('admin123'), name='Admin', role='admin', is_admin=True,id=1)
+        db.session.add(admin)
+        db.session.commit()
  
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

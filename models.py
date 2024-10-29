@@ -13,6 +13,7 @@ class User(db.Model):
     name = db.Column(db.String(80), nullable=False)
     role = db.Column(db.String(20), nullable=False)
     is_blocked = db.Column(db.Boolean, default=False, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
     # Define relationships with Customer and Professional
     professional = db.relationship('Professional', backref='user', lazy=True)
