@@ -19,7 +19,7 @@
       }
     </style>
   </head>
-  <body data-bs-theme="dark">
+  <body data-bs-theme="light">
     <div class="container mt-4">
       <!-- Navbar for  Dashboard -->
       {% if not (request.endpoint == 'professional_dashboard' and
@@ -33,18 +33,18 @@
       <div class="d-flex justify-content-center mb-4">
         <div class="d-flex flex-row gap-3">
           {% with dashboard_url = session['user_role'] + '_dashboard' %}
-          <a href="{{ url_for(dashboard_url) }}" class="btn btn-outline-light"
+          <a href="{{ url_for(dashboard_url) }}" class="btn btn-outline-dark"
             >Home</a
           >
           {% endwith %}
 
-          <a href="{{ url_for('search') }}" class="btn btn-outline-light"
+          <a href="{{ url_for('search') }}" class="btn btn-outline-dark"
             >Search</a
           >
-          <a href="{{ url_for('summary') }}" class="btn btn-outline-light"
+          <a href="{{ url_for('summary') }}" class="btn btn-outline-dark"
             >Summary</a
           >
-          <a href="{{ url_for('logout') }}" class="btn btn-outline-light"
+          <a href="{{ url_for('logout') }}" class="btn btn-outline-dark"
             >LogOut</a
           >
         </div>

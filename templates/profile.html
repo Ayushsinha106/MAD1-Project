@@ -13,9 +13,9 @@ endblock %} {% block content %}
     <p>
       <strong>Account Status:</strong>
       {% if user.is_blocked %}
-      <span class="badge badge-danger">Blocked</span>
+      <span class="badge text-bg-danger">Blocked</span>
       {% else %}
-      <span class="badge badge-success">Active</span>
+      <span class="badge text-bg-success">Active</span>
       {% endif %}
     </p>
     <!-- Add other customer-specific fields here -->
@@ -34,21 +34,19 @@ endblock %} {% block content %}
     <p>
       <strong>Account Status:</strong>
       {% if user.is_blocked %}
-      <span class="badge badge-danger">Blocked</span>
+      <span class="badge text-bg-danger">Blocked</span>
       {% elif not professional.verified %}
-      <span class="badge badge-warning">Not Verified</span>
+      <span class="badge text-bg-warning">Not Verified</span>
       {% else %}
-      <span class="badge badge-success">Verified</span>
+      <span class="badge text-bg-success">Verified</span>
       {% endif %}
     </p>
     <!-- Link to view uploaded document if available -->
-    {% if user.professional.document %}
+    {% if professional.document %}
     <p>
       <strong>Document:</strong>
-      <a
-        href="{{ url_for('uploaded_file', filename=user.professional.document) }}"
-        target="_blank"
-        >View Document</a
+      <a href="" target="_blank">
+        <button class="btn btn-warning btn-sm">View Document</button></a
       >
     </p>
     {% endif %}
@@ -64,5 +62,13 @@ endblock %} {% block content %}
     {% endif %}
   </div>
 </div>
+<script>
+  const user_role = "{{ user.role }}";
+  if (user_role === "professional") {
+    const doc = "{{ professional.document }}";
+    let url = "/uploads/" + doc;
+    document.querySelector("a").setAttribute("href", url);
+  }
+</script>
 
 {% endblock %}

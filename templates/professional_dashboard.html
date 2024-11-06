@@ -76,7 +76,7 @@
               >Reject</a
             >
             {% else %}
-            <span class="badge badge-danger">Rejected</span>
+            <span class="badge text-bg-danger">Rejected</span>
             {% endif %}
           </td>
         </tr>
@@ -95,6 +95,7 @@
           <th>Contact Phone</th>
           <th>Location</th>
           <th>Rating</th>
+          <th>Review</th>
         </tr>
       </thead>
       <tbody>
@@ -105,6 +106,7 @@
           <td>{{ service_request.customer.contact }}</td>
           <td>{{ service_request.customer.address }}</td>
           <td>{{ service_request.rating }}</td>
+          <td>{{ service_request.remarks }}</td>
         </tr>
         {% endfor %}
       </tbody>

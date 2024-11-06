@@ -256,10 +256,7 @@ Services{% endblock %} {% block content %}
         <tr>
           <td>{{service_request.id}}</td>
           <td>{{service_request.service.service_name}}</td>
-          <td>
-            {{ service_request.customer.user.name if
-            service_request.professional else 'N/A' }}
-          </td>
+          <td>{{ service_request.customer.user.name }}</td>
           <td>
             {{ service_request.professional.user.name if
             service_request.professional else 'N/A' }}
@@ -600,7 +597,7 @@ Services{% endblock %} {% block content %}
     document.getElementById("editProfessionalUsername").value = username;
     document.getElementById("editProfessionalService").value = service;
     document.getElementById("editProfessionalDescription").value = description;
-    let url = document.getElementById("docLink").getAttribute("data-url");
+    let url = "/uploads/" + doc;
     document.getElementById("viewDocument").href = url;
     let verifyUrl = `/verify_professional/${id}`;
     document.getElementById("verifyProfBtn").href = verifyUrl;

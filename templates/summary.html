@@ -1,11 +1,5 @@
 {% extends "layout.html" %} {% block title %}Summary - Household Services{%
 endblock %} {% block content %}
-<style>
-  .chart-size {
-    height: 500px !important;
-    top: 0;
-  }
-</style>
 <div class="container mt-4">
   <h2>Summary</h2>
 
@@ -25,8 +19,8 @@ endblock %} {% block content %}
   </div>
   {% elif session["user_role"] == "professional" %}
   <div>
-    <h4>Your Reviews & Ratings</h4>
-    <canvas class="chart-size" id="reviewsChart"></canvas>
+    <h4>Your Ratings</h4>
+    <canvas class="chart-size" id="profRatingChart"></canvas>
   </div>
   <div>
     <h4>Service Request Summary</h4>
@@ -135,6 +129,11 @@ endblock %} {% block content %}
     if (user_role == "professional") {
       const remarks = "{{ remarks }}";
       const ratings = "{{ ratings }}";
+      const ratingList = JSON.parse(ratings);
+      const ratingCounts = [1, 2, 3, 4, 5].map(
+        (rating) => ratingList.filter((r) => r === rating).length
+      );
+      const profRatingCtx = document.getElementById("profRatingChart");
       const professionalRequestData = "{{ professional_request_data }}";
       const data = {
         labels: ["Received", "Accepted", "Rejected"],
@@ -159,6 +158,55 @@ endblock %} {% block content %}
       const professionalCtx = document.getElementById(
         "professionalRequestChart"
       );
+
+      // Professional Ratings Chart
+
+      const ratingChart = new Chart(profRatingCtx, {
+        type: "bar", // Use 'line' for a line chart
+        data: {
+          labels: ["1", "2", "3", "4", "5"], // Labels for the X-axis
+          datasets: [
+            {
+              label: "Frequency of Ratings",
+              data: ratingCounts, // The frequency data for each rating
+              backgroundColor: [
+                "rgba(255, 99, 132, 0.5)",
+                "rgba(54, 162, 235, 0.5)",
+                "rgba(255, 206, 86, 0.5)",
+                "rgba(75, 192, 192, 0.5)",
+                "rgba(153, 102, 255, 0.5)",
+              ],
+              borderColor: [
+                "rgba(255, 99, 132, 1)",
+                "rgba(54, 162, 235, 1)",
+                "rgba(255, 206, 86, 1)",
+                "rgba(75, 192, 192, 1)",
+                "rgba(153, 102, 255, 1)",
+              ],
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true, // Start the Y-axis at zero
+              title: {
+                display: true,
+                text: "Number of Ratings",
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: "Rating",
+              },
+            },
+          },
+        },
+      });
+
+      // ServiceReuest Summary
       new Chart(professionalCtx, {
         type: "bar",
         data: data,
@@ -170,8 +218,6 @@ endblock %} {% block content %}
           },
         },
       });
-      console.log(remarks);
-      console.log(ratings);
     }
 
     //For Customer

@@ -140,10 +140,7 @@ endblock %} {% block content %}
       {% for service_request in service_requests %}
       <tr class="item">
         <td>{{service_request.id}}</td>
-        <td>
-          {{ service_request.customer.user.name if service_request.professional
-          else 'N/A' }}
-        </td>
+        <td>{{ service_request.customer.user.name }}</td>
         <td>{{service_request.customer.pincode}}</td>
         <td>
           {{ service_request.professional.user.name if
