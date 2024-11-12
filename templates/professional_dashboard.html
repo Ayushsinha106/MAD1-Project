@@ -25,6 +25,7 @@
           <th>Customer Name</th>
           <th>Description</th>
           <th>Location</th>
+          <th>Pincode</th>
           <th>Contact</th>
         </tr>
       </thead>
@@ -35,6 +36,7 @@
           <td>{{ service_request.customer.user.name }}</td>
           <td>{{ service_request.service.description }}</td>
           <td>{{ service_request.customer.address }}</td>
+          <td>{{ service_request.customer.pincode }}</td>
           <td>{{ service_request.customer.contact}}</td>
         </tr>
         {% endfor %}
@@ -51,6 +53,7 @@
           <th>Customer Name</th>
           <th>Description</th>
           <th>Location</th>
+          <th>Pincode</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -61,6 +64,7 @@
           <td>{{ service_request.customer.user.name }}</td>
           <td>{{ service_request.service.description }}</td>
           <td>{{ service_request.customer.address }}</td>
+          <td>{{ service_request.customer.pincode }}</td>
           <td>
             {% set ns = namespace(found=false) %} {% for reject in
             service_request.rejected_by %} {% if reject == user.id %} {% set

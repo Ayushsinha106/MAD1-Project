@@ -7,16 +7,17 @@ import uuid, datetime
 from sqlalchemy.orm import joinedload
 from sqlalchemy import not_
 import os
-
+from dotenv import load_dotenv
 app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploads/'
 ALLOWED_EXTENSIONS = {'pdf'}
-
+load_dotenv()
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///db.sqlite3"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = "1431983a28650982eb94507830943ee323bc97c0fb27f865c18cae6229e00e867a5981c0b970ac7b750a26892cf02f7f204d89a01b5cfcf4434ee7a420e7b7f5"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS')
+app.secret_key = os.getenv('SECRET_KEY')
+
 
 db.init_app(app)
 
@@ -224,7 +225,7 @@ def admin_dashboard():
         user = {'is_blocked': False}
         return render_template('admin_dashboard.html',customers=customers,professionals=professionals,services=services,service_requests=service_requests,user=user)  # Create this template
     else:
-        flash('Please log in first', 'danger')
+        flash('Only Admin can access it', 'danger')
         return redirect(url_for('login'))
 
 @app.route('/add_service', methods=['POST'])
@@ -286,20 +287,23 @@ def delete_service(service_id):
     print(service, 'service')
     if service:
         try:
-            service_request = ServiceRequest.query.filter_by(service_id=service_id)
-            if service_request:
-                pid = service_request.professional_id
-                if pid:
-                    professional = Professional.query.get(pid)
-                    professional.available = True
-                service_request.delete()
+            # Delete associated service requests
+            service_requests = ServiceRequest.query.filter_by(service_id=service_id).all()
+            for req in service_requests:
+                if req.professional_id:
+                    professional = Professional.query.get(req.professional_id)
+                    if professional:
+                        professional.available = True  # Set availability back to True
+                db.session.delete(req)  # Mark the service request for deletion
 
+            # Finally, delete the service
             db.session.delete(service)
-            db.session.commit()
+            db.session.commit()  # Commit all changes at once
+            
             flash('Service deleted successfully!', 'success')
         except Exception as e:
-            db.session.rollback()
-            flash('Error deleting service: ' + str(e), 'danger')
+            db.session.rollback()  # Rollback in case of error
+            flash(f'Error deleting service: {str(e)}', 'danger')
     else:
         flash('Service not found.', 'warning')
     
@@ -360,6 +364,9 @@ def delete_customer(customer_id):
 def customer_dashboard():
     # Logic for the customer dashboard
     user_id = session['user_id']
+    if not user_id:
+        flash('You must be logged in to view the dashboard.', 'danger')
+        return redirect(url_for('login'))
     customer = Customer.query.get(user_id)
     services =  db.session.query(Service.service_name).distinct().all()
 
@@ -473,8 +480,10 @@ def book_service(package_id):
 
 @app.route('/professional_dashboard')
 def professional_dashboard():
-    # Logic for the professional dashboard
     user_id = session['user_id']
+    if not user_id:
+        flash('You must be logged in to view the dashboard.', 'danger')
+        return redirect(url_for('login'))
     professional = Professional.query.get(user_id)
     user = User.query.get(user_id)
     service = Service.query.all()
