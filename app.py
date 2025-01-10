@@ -294,11 +294,10 @@ def delete_service(service_id):
                     professional = Professional.query.get(req.professional_id)
                     if professional:
                         professional.available = True  # Set availability back to True
-                db.session.delete(req)  # Mark the service request for deletion
+                db.session.delete(req)  
 
-            # Finally, delete the service
             db.session.delete(service)
-            db.session.commit()  # Commit all changes at once
+            db.session.commit() 
             
             flash('Service deleted successfully!', 'success')
         except Exception as e:
